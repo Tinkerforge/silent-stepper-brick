@@ -192,15 +192,15 @@
 #define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT}
 
 #define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //SDO_CFG0 chopper off time default
-#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_OUTPUT_0,    PIO_DEFAULT} //SDI_CFG1, set 16 uSteps, stealth
-#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_0,	   PIO_DEFAULT} //SCK_CFG2, set 16 uSteps, stealth
+#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} //SDI_CFG1, set 16 uSteps, stealth
+#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_INPUT,	   PIO_DEFAULT} //SCK_CFG2, set 16 uSteps, stealth
 #define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //CS_CFG3, Current Setting external sense resistors with analog input disabled
-#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0,PIO_DEFAULT} //DCEN_CFG4, set chopper hysteresis default
+#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //DCEN_CFG4, set chopper hysteresis default
 #define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //DCIN_CFG5, set chopper blank time best for stealth
-#define PIN_DCO        	{1 << 29, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} //DCO, N.C.
-#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} //DIAG1
-#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} //DIAG0
-#define PIN_SPI_MODE    {1 << 8,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //SPI_MODE, TMC2100 GND
+#define PIN_DCO        	{1 << 29, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DCO, N.C.
+#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DIAG1
+#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DIAG0
+#define PIN_SPI_MODE    {1 << 8,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //SPI_MODE, TMC2100 GND
 
 
 #define PINS_STEPPER    PIN_ENABLE, PIN_STEP, PIN_DIRECTION, PIN_VREF, \

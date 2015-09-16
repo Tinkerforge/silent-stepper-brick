@@ -41,15 +41,9 @@
 #include <stdio.h>
 
 Pin pin_enable =  PIN_ENABLE;
-//Pin pin_sleep = PIN_SLEEP;
 Pin pin_step = PIN_STEP;
 Pin pin_direction = PIN_DIRECTION;
-//Pin pin_usm[2] = {PIN_USM0, PIN_USM1};
-//Pin pin_reset = PIN_RESET;
-//Pin pin_sync_rect = PIN_SYNC_RECT;
-//Pin pin_home = PIN_HOME;
 Pin pin_vref = PIN_VREF;
-//Pin pin_decay = PIN_DECAY;
 Pin pin_voltage_switch = VOLTAGE_STACK_SWITCH_PIN;
 
 uint32_t stepper_velocity_goal = STEPPER_VELOCITY_DEFAULT;
@@ -306,6 +300,7 @@ void tick_task(const uint8_t tick_type) {
 			stepper_all_data_signal();
 		}
 	}
+	
 }
 
 void stepper_state_signal(void) {
@@ -344,6 +339,7 @@ void stepper_init(void) {
 	              PIO_LISTSIZE(stepper_power_management_pins));
 
 	// Initialize and enable DACC to set VREF and DECAY pins
+	
     DACC_Initialize(DACC,
                     ID_DACC,
                     0, // Hardware triggers are disabled
@@ -647,9 +643,7 @@ void stepper_set_direction(const int8_t direction) {
 }
 
 void stepper_enable(void) {
-//	PIO_Set(&pin_reset);
 	PIO_Clear(&pin_enable);
-//	PIO_Set(&pin_sleep);
 	stepper_state = STEPPER_STATE_STOP;
 	stepper_speedramp_state = STEPPER_SPEEDRAMP_STATE_STOP;
 	stepper_api_state = STEPPER_API_STATE_STOP;
@@ -660,7 +654,6 @@ void stepper_disable(void) {
 	stepper_state = STEPPER_STATE_OFF;
 	stepper_speedramp_state = STEPPER_SPEEDRAMP_STATE_STOP;
 	PIO_Set(&pin_enable);
-//	PIO_Clear(&pin_sleep);
 	stepper_full_brake();
 	stepper_state = STEPPER_STATE_OFF;
 }
