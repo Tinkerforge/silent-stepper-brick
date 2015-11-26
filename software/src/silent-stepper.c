@@ -45,6 +45,7 @@ Pin pin_step = PIN_STEP;
 Pin pin_direction = PIN_DIRECTION;
 Pin pin_vref = PIN_VREF;
 Pin pin_voltage_switch = VOLTAGE_STACK_SWITCH_PIN;
+Pin pin_mode[2] = {PIN_CFG1, PIN_CFG2};
 
 uint32_t stepper_velocity_goal = STEPPER_VELOCITY_DEFAULT;
 uint32_t stepper_velocity = 0;
@@ -385,8 +386,7 @@ void stepper_init(void) {
 	tc_channel_start(&SINGLE_SHOT_TC_CHANNEL);
 
     stepper_set_output_current(VREF_DEFAULT_CURRENT);
-    stepper_set_step_mode(STEP_MODE_EIGTH);
-//    stepper_set_decay(DECAY_DEFAULT_VALUE);
+    stepper_set_step_mode(STEP_MODE_STEALTH_SIXTEENTH_INT);
 
 	adc_channel_enable(VOLTAGE_EXTERN_CHANNEL);
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
@@ -674,22 +674,43 @@ void stepper_set_output_current(const uint16_t current) {
 
 void stepper_set_step_mode(const uint8_t mode) {
 	/*
+	//TODO Implement correct
 	switch(mode) {
-		case STEP_MODE_FULL:
-			PIO_Clear(&pin_usm[0]);
-			PIO_Clear(&pin_usm[1]);
+		case STEP_MODE_SPREAD_FULL:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
 			break;
-		case STEP_MODE_HALF:
-			PIO_Set(&pin_usm[0]);
-			PIO_Clear(&pin_usm[1]);
+		case STEP_MODE_SPREAD_HALF:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
 			break;
-		case STEP_MODE_QUARTER:
-			PIO_Clear(&pin_usm[0]);
-			PIO_Set(&pin_usm[1]);
+		case STEP_MODE_SPREAD_HALF_INT:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
 			break;
-		case STEP_MODE_EIGTH:
-			PIO_Set(&pin_usm[0]);
-			PIO_Set(&pin_usm[1]);
+		case STEP_MODE_SPREAD_HALF_QUARTER:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
+			break;
+		case STEP_MODE_SPREAD_HALF_SIXTEENTH:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
+			break;
+		case STEP_MODE_SPREAD_HALF_QUARTER_INT:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
+			break;
+		case STEP_MODE_SPREAD_HALF_SIXTEENTH_INT:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
+			break;
+		case STEP_MODE_STEALTH_QUARTER_INT:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
+			break;
+		case STEP_MODE_STEALTH_SIXTEENTH_INT:
+			PIO_Clear(&pin_mode[0]);
+			PIO_Clear(&pin_mode[1]);
 			break;
 		default:
 			break;
@@ -708,7 +729,7 @@ uint8_t stepper_get_step_mode(void) {
 	} else {
 		return STEP_MODE_EIGTH;
 	}*/
-		return STEP_MODE_EIGTH;
+		return STEP_MODE_STEALTH_SIXTEENTH_INT;
 }
 
 void stepper_set_decay(const uint16_t decay) {

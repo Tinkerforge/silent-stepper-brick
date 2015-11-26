@@ -792,4 +792,6 @@ Wire Wire Line
 	3850 1700 1700 1700
 Text Notes 2000 3100 0    512  ~ 0
 TODO\nDetermine max Voltage
+Text Notes 8000 5250 0    197  ~ 0
+Bricklet Port Encoder?\nneeds TIOA0, TIOB0 and TIOA1
 $EndSCHEMATC

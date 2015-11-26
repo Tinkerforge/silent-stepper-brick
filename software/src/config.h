@@ -193,8 +193,8 @@
 
 #define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //SDO_CFG0 chopper off time default
 #define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} //SDI_CFG1, set 16 uSteps, stealth
-#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_INPUT,	   PIO_DEFAULT} //SCK_CFG2, set 16 uSteps, stealth
-#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //CS_CFG3, Current Setting external sense resistors with analog input disabled
+#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1,	   PIO_DEFAULT} //SCK_CFG2, set 16 uSteps, stealth
+#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //CS_CFG3, Current Setting external sense resistors with analog input disabled
 #define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //DCEN_CFG4, set chopper hysteresis default
 #define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //DCIN_CFG5, set chopper blank time best for stealth
 #define PIN_DCO        	{1 << 29, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DCO, N.C.

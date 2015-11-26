@@ -54,21 +54,17 @@
 #define FID_ENABLE 24
 #define FID_DISABLE 25
 #define FID_IS_ENABLED 26
-#define FID_SET_DECAY 27
-#define FID_GET_DECAY 28
-#define FID_SET_MINIMUM_VOLTAGE 29
-#define FID_GET_MINIMUM_VOLTAGE 30
-#define FID_UNDER_VOLTAGE 31
-#define FID_POSITION_REACHED 32
-#define FID_SET_SYNC_RECT 33
-#define FID_IS_SYNC_RECT 34
-#define FID_SET_TIME_BASE 35
-#define FID_GET_TIME_BASE 36
-#define FID_GET_ALL_DATA 37
-#define FID_SET_ALL_DATA_PERIOD 38
-#define FID_GET_ALL_DATA_PERIOD 39
-#define FID_ALL_DATA 40
-#define FID_NEW_STATE 41
+#define FID_SET_MINIMUM_VOLTAGE 27
+#define FID_GET_MINIMUM_VOLTAGE 28
+#define FID_UNDER_VOLTAGE 29
+#define FID_POSITION_REACHED 30
+#define FID_SET_TIME_BASE 31
+#define FID_GET_TIME_BASE 32
+#define FID_GET_ALL_DATA 33
+#define FID_SET_ALL_DATA_PERIOD 34
+#define FID_GET_ALL_DATA_PERIOD 35
+#define FID_ALL_DATA 36
+#define FID_NEW_STATE 37
 
 #define COM_MESSAGES_USER \
 	{FID_SET_MAX_VELOCITY, (message_handler_func_t)set_max_velocity}, \
@@ -97,14 +93,10 @@
 	{FID_ENABLE, (message_handler_func_t)enable}, \
 	{FID_DISABLE, (message_handler_func_t)disable}, \
 	{FID_IS_ENABLED, (message_handler_func_t)is_enabled}, \
-	{FID_SET_DECAY, (message_handler_func_t)set_decay}, \
-	{FID_GET_DECAY, (message_handler_func_t)get_decay}, \
 	{FID_SET_MINIMUM_VOLTAGE, (message_handler_func_t)set_minimum_voltage}, \
 	{FID_GET_MINIMUM_VOLTAGE, (message_handler_func_t)get_minimum_voltage}, \
 	{FID_UNDER_VOLTAGE, (message_handler_func_t)NULL}, \
 	{FID_POSITION_REACHED, (message_handler_func_t)NULL}, \
-	{FID_SET_SYNC_RECT, (message_handler_func_t)set_sync_rect}, \
-	{FID_IS_SYNC_RECT, (message_handler_func_t)is_sync_rect}, \
 	{FID_SET_TIME_BASE, (message_handler_func_t)set_time_base}, \
 	{FID_GET_TIME_BASE, (message_handler_func_t)get_time_base}, \
 	{FID_GET_ALL_DATA, (message_handler_func_t)get_all_data}, \

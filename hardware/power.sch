@@ -1269,7 +1269,15 @@ Wire Wire Line
 Wire Wire Line
 	8700 3500 8350 3500
 Text Notes 2000 1000 0    118  ~ 0
-Diode speist ggf. zu viel zurück\nLsg hier auch aktiv schalten
+Diode speist ggf. zu viel zurück\nLsg hier auch aktiv schalten\nDiode behalten (wegen Bodydiode)
 Text Notes 8200 6500 0    60   ~ 0
 max. input = 5.25/2 = 2.625: 3.3V -> 2.6265V
+Text Notes 4950 4150 0    60   ~ 0
+FIX GND
+Text Notes 5200 5600 0    60   ~ 0
+FIX DNC
+Text Notes 4900 4900 0    60   ~ 0
+Floating?
+Text Notes 8800 3150 0    60   ~ 0
+too high on Top side
 $EndSCHEMATC
