@@ -1,7 +1,7 @@
-/* stepper-brick
- * Copyright (C) 2010-2012 Olaf Lüke <olaf@tinkerforge.com>
+/* silent-stepper-brick
+ * Copyright (C) 2015 Olaf Lüke <olaf@tinkerforge.com>
  *
- * communication.h: Implementation of Stepper-Brick specific messages
+ * communication.h: Implementation of Silent StepperBrick specific messages
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

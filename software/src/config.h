@@ -1,7 +1,7 @@
-/* stepper-brick
- * Copyright (C) 2010-2012 Olaf Lüke <olaf@tinkerforge.com>
+/* silent-stepper-brick
+ * Copyright (C) 2015 Olaf Lüke <olaf@tinkerforge.com>
  *
- * config.h: Stepper-Brick specific configuration
+ * config.h: Silent Stepper Brick specific configuration
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,14 +27,14 @@
 #include "silent-stepper.h"
 
 #define BRICK_FIRMWARE_VERSION_MAJOR 2
-#define BRICK_FIRMWARE_VERSION_MINOR 3
-#define BRICK_FIRMWARE_VERSION_REVISION 1
+#define BRICK_FIRMWARE_VERSION_MINOR 0
+#define BRICK_FIRMWARE_VERSION_REVISION 0
 
 #define BRICK_HARDWARE_VERSION_MAJOR 1
-#define BRICK_HARDWARE_VERSION_MINOR 1
+#define BRICK_HARDWARE_VERSION_MINOR 0
 #define BRICK_HARDWARE_VERSION_REVISION 0
 
-#define BRICK_DEVICE_IDENTIFIER 15
+#define BRICK_DEVICE_IDENTIFIER 19
 
 // ************** DEBUG SETTINGS **************
 #define DEBUG_SPI_STACK 1
