@@ -54,17 +54,19 @@
 #define FID_ENABLE 24
 #define FID_DISABLE 25
 #define FID_IS_ENABLED 26
-#define FID_SET_MINIMUM_VOLTAGE 27
-#define FID_GET_MINIMUM_VOLTAGE 28
-#define FID_UNDER_VOLTAGE 29
-#define FID_POSITION_REACHED 30
-#define FID_SET_TIME_BASE 31
-#define FID_GET_TIME_BASE 32
-#define FID_GET_ALL_DATA 33
-#define FID_SET_ALL_DATA_PERIOD 34
-#define FID_GET_ALL_DATA_PERIOD 35
-#define FID_ALL_DATA 36
-#define FID_NEW_STATE 37
+#define FID_SET_CONFIGURATION 28
+#define FID_GET_CONFIGURATION 29
+#define FID_SET_MINIMUM_VOLTAGE 30
+#define FID_GET_MINIMUM_VOLTAGE 31
+#define FID_UNDER_VOLTAGE 32
+#define FID_POSITION_REACHED 33
+#define FID_SET_TIME_BASE 34
+#define FID_GET_TIME_BASE 35
+#define FID_GET_ALL_DATA 36
+#define FID_SET_ALL_DATA_PERIOD 37
+#define FID_GET_ALL_DATA_PERIOD 38
+#define FID_ALL_DATA 39
+#define FID_NEW_STATE 40
 
 #define COM_MESSAGES_USER \
 	{FID_SET_MAX_VELOCITY, (message_handler_func_t)set_max_velocity}, \
@@ -93,6 +95,8 @@
 	{FID_ENABLE, (message_handler_func_t)enable}, \
 	{FID_DISABLE, (message_handler_func_t)disable}, \
 	{FID_IS_ENABLED, (message_handler_func_t)is_enabled}, \
+	{FID_SET_CONFIGURATION, (message_handler_func_t)set_configuration}, \
+	{FID_GET_CONFIGURATION, (message_handler_func_t)get_configuration}, \
 	{FID_SET_MINIMUM_VOLTAGE, (message_handler_func_t)set_minimum_voltage}, \
 	{FID_GET_MINIMUM_VOLTAGE, (message_handler_func_t)get_minimum_voltage}, \
 	{FID_UNDER_VOLTAGE, (message_handler_func_t)NULL}, \
@@ -286,17 +290,23 @@ typedef struct {
 
 typedef struct {
 	MessageHeader header;
-	uint16_t decay;
-} __attribute__((__packed__)) SetDecay;
+	uint8_t standstill_power_down;
+	uint8_t chopper_off_time;
+	uint8_t chopper_hysteresis;
+	uint8_t chopper_blank_time;
+} __attribute__((__packed__)) SetConfiguration;
 
 typedef struct {
 	MessageHeader header;
-} __attribute__((__packed__)) GetDecay;
+} __attribute__((__packed__)) GetConfiguration;
 
 typedef struct {
 	MessageHeader header;
-	uint16_t decay;
-} __attribute__((__packed__)) GetDecayReturn;
+	uint8_t standstill_power_down;
+	uint8_t chopper_off_time;
+	uint8_t chopper_hysteresis;
+	uint8_t chopper_blank_time;
+} __attribute__((__packed__)) GetConfigurationReturn;
 
 typedef struct {
 	MessageHeader header;
@@ -321,15 +331,6 @@ typedef struct {
 	MessageHeader header;
 	int32_t position;
 } __attribute__((__packed__)) PositionReachedSignal;
-
-typedef struct {
-	MessageHeader header;
-	bool sync_rect;
-} __attribute__((__packed__)) SetSyncRect;
-
-typedef struct {
-	MessageHeader header;
-} __attribute__((__packed__)) IsSyncRect;
 
 typedef struct {
 	MessageHeader header;
@@ -417,15 +418,13 @@ void get_external_input_voltage(const ComType com, const GetExternalInputVoltage
 void get_current_consumption(const ComType com, const GetCurrentConsumption *data);
 void set_motor_current(const ComType com, const SetMotorCurrent *data);
 void get_motor_current(const ComType com, const GetMotorCurrent *data);
-void set_decay(const ComType com, const SetDecay *data);
-void get_decay(const ComType com, const GetDecay *data);
+void set_configuration(const ComType com, const SetConfiguration *data);
+void get_configuration(const ComType com, const GetConfiguration *data);
 void enable(const ComType com, const Enable *data);
 void disable(const ComType com, const Disable *data);
 void is_enabled(const ComType com, const IsEnabled *data);
 void set_minimum_voltage(const ComType com, const SetMinimumVoltage *data);
 void get_minimum_voltage(const ComType com, const GetMinimumVoltage *data);
-void set_sync_rect(const ComType com, const SetSyncRect *data);
-void is_sync_rect(const ComType com, const IsSyncRect *data);
 void set_time_base(const ComType com, const SetTimeBase *data);
 void get_time_base(const ComType com, const GetTimeBase *data);
 void get_all_data(const ComType com, const GetAllData *data);

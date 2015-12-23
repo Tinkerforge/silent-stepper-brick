@@ -93,8 +93,15 @@
 #define PIN_USB_DETECT  {1 << 26, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
 // USB product descriptor (name of brick)
 #define PRODUCT_DESCRIPTOR { \
-	USBStringDescriptor_LENGTH(13), \
+	USBStringDescriptor_LENGTH(20), \
     USBGenericDescriptor_STRING, \
+    USBStringDescriptor_UNICODE('S'), \
+    USBStringDescriptor_UNICODE('i'), \
+    USBStringDescriptor_UNICODE('l'), \
+    USBStringDescriptor_UNICODE('e'), \
+    USBStringDescriptor_UNICODE('n'), \
+    USBStringDescriptor_UNICODE('t'), \
+    USBStringDescriptor_UNICODE(' '), \
     USBStringDescriptor_UNICODE('S'), \
     USBStringDescriptor_UNICODE('t'), \
     USBStringDescriptor_UNICODE('e'), \
@@ -191,22 +198,34 @@
 #define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT}
 #define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT}
 
-#define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //SDO_CFG0 chopper off time default
-#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} //SDI_CFG1, set 16 uSteps, stealth
-#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1,	   PIO_DEFAULT} //SCK_CFG2, set 16 uSteps, stealth
-#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //CS_CFG3, Current Setting external sense resistors with analog input disabled
-#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //DCEN_CFG4, set chopper hysteresis default
-#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //DCIN_CFG5, set chopper blank time best for stealth
-#define PIN_DCO        	{1 << 29, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DCO, N.C.
-#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DIAG1
-#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //DIAG0
-#define PIN_SPI_MODE    {1 << 8,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //SPI_MODE, TMC2100 GND
-
+#define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
+#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
+#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
+#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input disabled
+#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
+#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
+#define PIN_DCO        	{1 << 29, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // DCO, N.C.
+#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // DIAG1
+#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // DIAG0
+#define PIN_SPI_MODE    {1 << 8,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SPI_MODE, TMC2100 GND
 
 #define PINS_STEPPER    PIN_ENABLE, PIN_STEP, PIN_DIRECTION, PIN_VREF, \
                         PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG3, PIN_CFG4, \
                         PIN_CFG5, PIN_DCO, PIN_DIAG1, PIN_DIAG0, PIN_SPI_MODE
 
+#define PINS_CONFIG     PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG3, PIN_CFG4, \
+                        PIN_CFG5, PIN_DCO, PIN_DIAG1, PIN_DIAG0, PIN_SPI_MODE
+
+#define CFG_0        0
+#define CFG_1        1
+#define CFG_2        2
+#define CFG_3        3
+#define CFG_4        4
+#define CFG_5        5
+#define CFG_DCO      6
+#define CFG_DIAG1    7
+#define CFG_DIAG0    8
+#define CFG_SPI_MODE 9
 
 // ************** POWER MANAGEMENT **************
 #define VOLTAGE_MAX_VALUE 4095
@@ -240,10 +259,8 @@
 #define STEPPER_CURRENT_REFERENCE 3300
 #define STEPPER_CURRENT_PIN {1 << 18, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN}
 
-// 15: 0.15 Ohm Resistor
+// 15: 0.01 Ohm Resistor
 // 1/6: Minimum value for DAC
 // 5/6: Maximim value for DAC
 #define VREF_MIN_CURRENT 0
 #define VREF_MAX_CURRENT 1920
-
-//#define DECAY_CHANNEL 1

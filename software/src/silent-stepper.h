@@ -48,15 +48,27 @@
 #define SINGLE_SHOT_TC_CHANNEL (TC0->TC_CHANNEL[SINGLE_SHOT_TC_CHANNEL_NUM])
 #define SINGLE_SHOT_COUNTER SINGLE_SHOT_TC_CHANNEL.TC_RC
 
-#define STEP_MODE_SPREAD_FULL       		1
-#define STEP_MODE_SPREAD_HALF       		2
-#define STEP_MODE_SPREAD_HALF_INT   		3
-#define STEP_MODE_SPREAD_QUARTER    		4
-#define STEP_MODE_SPREAD_SIXTEENTH    		5
-#define STEP_MODE_SPREAD_QUARTER_INT    	6
-#define STEP_MODE_SPREAD_SIXTEENTH_INT  	7
-#define STEP_MODE_STEALTH_QUARTER_INT   	8
-#define STEP_MODE_STEALTH_SIXTEENTH_INT 	9
+#define STEP_MODE_NORMAL_FULL                  0
+#define STEP_MODE_NORMAL_HALF                  1
+#define STEP_MODE_NORMAL_HALF_INTERPOLATE      2
+#define STEP_MODE_NORMAL_QUARTER               3
+#define STEP_MODE_NORMAL_SIXTEENTH             4
+#define STEP_MODE_NORMAL_QUARTER_INTERPOLATE   5
+#define STEP_MODE_NORMAL_SIXTEENTH_INTERPOLATE 6
+#define STEP_MODE_SILENT_QUARTER_INTERPOLATE   7
+#define STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE 8
+
+#define STEPPER_STANDSTILL_POWER_DOWN_ON  0
+#define STEPPER_STANDSTILL_POWER_DOWN_OFF 1
+#define STEPPER_CHOPPER_OFF_TIME_LOW      0
+#define STEPPER_CHOPPER_OFF_TIME_MEDIUM   1
+#define STEPPER_CHOPPER_OFF_TIME_HIGH     2
+#define STEPPER_CHOPPER_HYSTERESIS_LOW    0
+#define STEPPER_CHOPPER_HYSTERESIS_MEDIUM 1
+#define STEPPER_CHOPPER_HYSTERESIS_HIGH   2
+#define STEPPER_CHOPPER_BLANK_TIME_LOW    0
+#define STEPPER_CHOPPER_BLANK_TIME_MEDIUM 1
+#define STEPPER_CHOPPER_BLANK_TIME_HIGH   2
 
 // (0.2*3300)
 #define DECAY_MIN_VALUE      SCALE(660, VOLTAGE_MIN_DAC, VOLTAGE_MAX_DAC, \
@@ -122,6 +134,7 @@ int32_t stepper_get_remaining_steps(void);
 void stepper_all_data_signal(void);
 void stepper_state_signal(void);
 void stepper_set_new_api_state(const uint8_t new_state);
+void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time);
 
 void TC0_IrqHandler(void);
 #endif

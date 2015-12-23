@@ -40,7 +40,6 @@ extern uint16_t stepper_acceleration;
 extern uint16_t stepper_acceleration_sqrt;
 extern uint16_t stepper_deceleration;
 extern uint16_t stepper_minimum_voltage;
-extern uint16_t stepper_decay;
 
 extern int32_t stepper_position;
 extern int32_t stepper_target_position;
@@ -51,7 +50,10 @@ extern int8_t stepper_state;
 extern uint32_t stepper_time_base;
 extern uint32_t stepper_all_data_period;
 
-extern bool stepper_sync_rect;
+extern uint8_t stepper_standstill_power_down;
+extern uint8_t stepper_chopper_off_time;
+extern uint8_t stepper_chopper_hysteresis;
+extern uint8_t stepper_chopper_blank_time;
 
 void set_max_velocity(const ComType com, const SetMaxVelocity *data) {
 	uint32_t old_velocity_goal = stepper_velocity_goal;
@@ -182,7 +184,7 @@ void get_remaining_steps(const ComType com, const GetRemainingSteps *data) {
 }
 
 void set_step_mode(const ComType com, const SetStepMode *data) {
-	if(data->mode != 1 && data->mode != 2 && data->mode != 4 && data->mode != 8) {
+	if(data->mode > STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE) {
 		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
 		return;
 	}
@@ -303,19 +305,31 @@ void is_enabled(const ComType com, const IsEnabled *data) {
 	send_blocking_with_timeout(&ier, sizeof(IsEnabledReturn), com);
 }
 
-void set_decay(const ComType com, const SetDecay *data) {
-	stepper_set_decay(data->decay);
+void set_configuration(const ComType com, const SetConfiguration *data) {
+	if(data->standstill_power_down > STEPPER_STANDSTILL_POWER_DOWN_OFF ||
+	   data->chopper_off_time > STEPPER_CHOPPER_OFF_TIME_HIGH ||
+	   data->chopper_hysteresis > STEPPER_CHOPPER_HYSTERESIS_HIGH ||
+	   data->chopper_blank_time > STEPPER_CHOPPER_BLANK_TIME_HIGH) {
+		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
+		return;
+	}
+
+	stepper_set_configuration(data->standstill_power_down, data->chopper_off_time, data->chopper_hysteresis, data->chopper_blank_time);
+
 	com_return_setter(com, data);
 }
 
-void get_decay(const ComType com, const GetDecay *data) {
-	GetDecayReturn gdr;
+void get_configuration(const ComType com, const GetConfiguration *data) {
+	GetConfigurationReturn gcr;
 
-	gdr.header        = data->header;
-	gdr.header.length = sizeof(GetDecayReturn);
-	gdr.decay         = stepper_decay;
+	gcr.header                = data->header;
+	gcr.header.length         = sizeof(GetConfigurationReturn);
+	gcr.standstill_power_down = stepper_standstill_power_down;
+	gcr.chopper_blank_time    = stepper_chopper_blank_time;
+	gcr.chopper_hysteresis    = stepper_chopper_hysteresis;
+	gcr.chopper_off_time      = stepper_chopper_off_time;
 
-	send_blocking_with_timeout(&gdr, sizeof(GetDecayReturn), com);
+	send_blocking_with_timeout(&gcr, sizeof(GetConfigurationReturn), com);
 }
 
 void set_minimum_voltage(const ComType com, const SetMinimumVoltage *data) {
@@ -331,23 +345,6 @@ void get_minimum_voltage(const ComType com, const GetMinimumVoltage *data) {
 	gmvr.voltage       = stepper_minimum_voltage;
 
 	send_blocking_with_timeout(&gmvr, sizeof(GetMinimumVoltageReturn), com);
-}
-
-void set_sync_rect(const ComType com, const SetSyncRect *data) {
-	stepper_sync_rect = data->sync_rect;
-	stepper_set_sync_rect(stepper_sync_rect);
-
-	com_return_setter(com, data);
-}
-
-void is_sync_rect(const ComType com, const IsSyncRect *data) {
-	IsSyncRectReturn isrr;
-
-	isrr.header        = data->header;
-	isrr.header.length = sizeof(IsSyncRectReturn);
-	isrr.sync_rect     = stepper_sync_rect;
-
-	send_blocking_with_timeout(&isrr, sizeof(IsSyncRectReturn), com);
 }
 
 void set_time_base(const ComType com, const SetTimeBase *data) {

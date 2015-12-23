@@ -45,7 +45,8 @@ Pin pin_step = PIN_STEP;
 Pin pin_direction = PIN_DIRECTION;
 Pin pin_vref = PIN_VREF;
 Pin pin_voltage_switch = VOLTAGE_STACK_SWITCH_PIN;
-Pin pin_mode[2] = {PIN_CFG1, PIN_CFG2};
+
+Pin stepper_config[] = {PINS_CONFIG};
 
 uint32_t stepper_velocity_goal = STEPPER_VELOCITY_DEFAULT;
 uint32_t stepper_velocity = 0;
@@ -53,7 +54,6 @@ uint16_t stepper_acceleration = STEPPER_ACCELERATION_DEFAULT;
 uint16_t stepper_acceleration_sqrt = STEPPER_ACCELERATION_SQRT_DEFAULT;
 uint16_t stepper_deceleration = STEPPER_DECELERATION_DEFAUL;
 uint16_t stepper_minimum_voltage = STEPPER_MINIMUM_VOLTAGE_DEFAULT;
-uint16_t stepper_decay = 0;
 
 int32_t stepper_position = 0;
 int32_t stepper_target_position = 0;
@@ -85,11 +85,15 @@ bool stepper_position_reached = false;
 uint32_t stepper_current_sum = 0;
 uint32_t stepper_current = 0;
 
-bool stepper_sync_rect = false;
-
 uint8_t stepper_api_state = STEPPER_API_STATE_STOP;
 uint8_t stepper_api_prev_state = STEPPER_API_STATE_STOP;
 bool stepper_api_state_send = false;
+uint8_t stepper_step_mode = STEP_MODE_SILENT_QUARTER_INTERPOLATE;
+
+uint8_t stepper_standstill_power_down = STEPPER_STANDSTILL_POWER_DOWN_ON;
+uint8_t stepper_chopper_off_time      = STEPPER_CHOPPER_OFF_TIME_LOW;
+uint8_t stepper_chopper_hysteresis    = STEPPER_CHOPPER_HYSTERESIS_LOW;
+uint8_t stepper_chopper_blank_time    = STEPPER_CHOPPER_BLANK_TIME_LOW;
 
 const uint32_t stepper_timer_frequency[] = {BOARD_MCK/2,
                                             BOARD_MCK/8,
@@ -301,7 +305,6 @@ void tick_task(const uint8_t tick_type) {
 			stepper_all_data_signal();
 		}
 	}
-	
 }
 
 void stepper_state_signal(void) {
@@ -353,7 +356,6 @@ void stepper_init(void) {
                     1, // Tag Selection Mode enabled
                     16); //  value of the start up time
     DACC_EnableChannel(DACC, VREF_CHANNEL);
-//    DACC_EnableChannel(DACC, DECAY_CHANNEL);
 
 
     // Enable peripheral clock for TC
@@ -386,7 +388,8 @@ void stepper_init(void) {
 	tc_channel_start(&SINGLE_SHOT_TC_CHANNEL);
 
     stepper_set_output_current(VREF_DEFAULT_CURRENT);
-    stepper_set_step_mode(STEP_MODE_STEALTH_SIXTEENTH_INT);
+    stepper_set_step_mode(stepper_step_mode);
+    stepper_set_configuration(stepper_standstill_power_down, stepper_chopper_off_time, stepper_chopper_hysteresis, stepper_chopper_blank_time);
 
 	adc_channel_enable(VOLTAGE_EXTERN_CHANNEL);
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
@@ -642,9 +645,23 @@ void stepper_set_direction(const int8_t direction) {
 	}
 }
 
+void stepper_enable_pin_apply(void) {
+	if(stepper_state == STEPPER_STATE_OFF) {
+		pin_enable.type = PIO_OUTPUT_1;
+	} else {
+		if(stepper_standstill_power_down == STEPPER_STANDSTILL_POWER_DOWN_ON) {
+			pin_enable.type = PIO_INPUT;
+		} else {
+			pin_enable.type = PIO_OUTPUT_0;
+		}
+	}
+
+	PIO_Configure(&pin_enable, 1);
+}
+
 void stepper_enable(void) {
-	PIO_Clear(&pin_enable);
 	stepper_state = STEPPER_STATE_STOP;
+	stepper_enable_pin_apply();
 	stepper_speedramp_state = STEPPER_SPEEDRAMP_STATE_STOP;
 	stepper_api_state = STEPPER_API_STATE_STOP;
 	stepper_api_prev_state = STEPPER_API_STATE_STOP;
@@ -653,7 +670,7 @@ void stepper_enable(void) {
 void stepper_disable(void) {
 	stepper_state = STEPPER_STATE_OFF;
 	stepper_speedramp_state = STEPPER_SPEEDRAMP_STATE_STOP;
-	PIO_Set(&pin_enable);
+	stepper_enable_pin_apply();
 	stepper_full_brake();
 	stepper_state = STEPPER_STATE_OFF;
 }
@@ -672,74 +689,115 @@ void stepper_set_output_current(const uint16_t current) {
 	stepper_output_current = new_current;
 }
 
+void stepper_apply_configuration(void) {
+	PIO_Configure(stepper_config, PIO_LISTSIZE(stepper_config));
+}
+
 void stepper_set_step_mode(const uint8_t mode) {
-	/*
-	//TODO Implement correct
+	stepper_step_mode = mode;
 	switch(mode) {
-		case STEP_MODE_SPREAD_FULL:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+		case STEP_MODE_NORMAL_FULL:
+			stepper_config[CFG_1].type = PIO_OUTPUT_0;
+			stepper_config[CFG_2].type = PIO_OUTPUT_0;
 			break;
-		case STEP_MODE_SPREAD_HALF:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_NORMAL_HALF:
+			stepper_config[CFG_1].type = PIO_OUTPUT_1;
+			stepper_config[CFG_2].type = PIO_OUTPUT_0;
 			break;
-		case STEP_MODE_SPREAD_HALF_INT:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_NORMAL_HALF_INTERPOLATE:
+			stepper_config[CFG_1].type = PIO_INPUT;
+			stepper_config[CFG_2].type = PIO_OUTPUT_0;
 			break;
-		case STEP_MODE_SPREAD_HALF_QUARTER:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_NORMAL_QUARTER:
+			stepper_config[CFG_1].type = PIO_OUTPUT_0;
+			stepper_config[CFG_2].type = PIO_OUTPUT_1;
 			break;
-		case STEP_MODE_SPREAD_HALF_SIXTEENTH:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_NORMAL_SIXTEENTH:
+			stepper_config[CFG_1].type = PIO_OUTPUT_1;
+			stepper_config[CFG_2].type = PIO_OUTPUT_1;
 			break;
-		case STEP_MODE_SPREAD_HALF_QUARTER_INT:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_NORMAL_QUARTER_INTERPOLATE:
+			stepper_config[CFG_1].type = PIO_INPUT;
+			stepper_config[CFG_2].type = PIO_OUTPUT_1;
 			break;
-		case STEP_MODE_SPREAD_HALF_SIXTEENTH_INT:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_NORMAL_SIXTEENTH_INTERPOLATE:
+			stepper_config[CFG_1].type = PIO_OUTPUT_0;
+			stepper_config[CFG_2].type = PIO_INPUT;
 			break;
-		case STEP_MODE_STEALTH_QUARTER_INT:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_SILENT_QUARTER_INTERPOLATE:
+			stepper_config[CFG_1].type = PIO_OUTPUT_1;
+			stepper_config[CFG_2].type = PIO_INPUT;
 			break;
-		case STEP_MODE_STEALTH_SIXTEENTH_INT:
-			PIO_Clear(&pin_mode[0]);
-			PIO_Clear(&pin_mode[1]);
+
+		case STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE:
+			stepper_config[CFG_1].type = PIO_INPUT;
+			stepper_config[CFG_2].type = PIO_INPUT;
 			break;
+
 		default:
 			break;
 			// TODO: error?
-	}*/
+	}
+
+	stepper_apply_configuration();
+}
+
+void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time) {
+	stepper_standstill_power_down = standstill_power_down;
+	stepper_chopper_off_time = chopper_off_time;
+	stepper_chopper_hysteresis = chopper_hysteresis;
+	stepper_chopper_blank_time = chopper_blank_time;
+
+	stepper_enable_pin_apply();
+
+	switch(stepper_chopper_off_time) {
+		case STEPPER_CHOPPER_OFF_TIME_LOW:
+			stepper_config[CFG_0].type = PIO_OUTPUT_0;
+			break;
+		case STEPPER_CHOPPER_OFF_TIME_MEDIUM:
+			stepper_config[CFG_0].type = PIO_OUTPUT_1;
+			break;
+		case STEPPER_CHOPPER_OFF_TIME_HIGH:
+			stepper_config[CFG_0].type = PIO_INPUT;
+			break;
+	}
+
+	switch(stepper_chopper_hysteresis) {
+		case STEPPER_CHOPPER_HYSTERESIS_LOW:
+			stepper_config[CFG_4].type = PIO_OUTPUT_0;
+			break;
+		case STEPPER_CHOPPER_HYSTERESIS_MEDIUM:
+			stepper_config[CFG_4].type = PIO_OUTPUT_1;
+			break;
+		case STEPPER_CHOPPER_HYSTERESIS_HIGH:
+			stepper_config[CFG_4].type = PIO_INPUT;
+			break;
+	}
+
+	switch(stepper_chopper_blank_time) {
+		case STEPPER_CHOPPER_BLANK_TIME_LOW:
+			stepper_config[CFG_5].type = PIO_OUTPUT_0;
+			break;
+		case STEPPER_CHOPPER_BLANK_TIME_MEDIUM:
+			stepper_config[CFG_5].type = PIO_OUTPUT_1;
+			break;
+		case STEPPER_CHOPPER_BLANK_TIME_HIGH:
+			stepper_config[CFG_5].type = PIO_INPUT;
+			break;
+	}
+
+	stepper_apply_configuration();
 }
 
 uint8_t stepper_get_step_mode(void) {
-/*	bool usm[2] = {PIO_Get(&pin_usm[0]), PIO_Get(&pin_usm[1])};
-	if(!usm[0] && !usm[1]) {
-		return STEP_MODE_FULL;
-	} else if(usm[0] && !usm[1]) {
-		return STEP_MODE_HALF;
-	} else if(!usm[0] && usm[1]) {
-		return STEP_MODE_QUARTER;
-	} else {
-		return STEP_MODE_EIGTH;
-	}*/
-		return STEP_MODE_STEALTH_SIXTEENTH_INT;
-}
-
-void stepper_set_decay(const uint16_t decay) {
-/*	stepper_decay = decay;
-	DACC_SetConversionData(DACC, SCALE(decay,
-	                                   0,
-	                                   0xFFFF,
-	                                   DECAY_MIN_VALUE,
-	                                   DECAY_MAX_VALUE) |
-	                             (1 << 12));*/
+	return stepper_step_mode;
 }
 
 uint16_t stepper_get_external_voltage(void) {
@@ -761,15 +819,6 @@ uint16_t stepper_get_current(void) {
 	       STEPPER_CURRENT_REFERENCE *
 	       STEPPER_CURRENT_MULTIPLIER /
 	       VOLTAGE_MAX_VALUE;
-}
-
-void stepper_set_sync_rect(bool sr) {
-/*	Pin srpin = PIN_SYNC_RECT;
-	if(sr) {
-		PIO_Clear(&srpin);
-	} else {
-		PIO_Set(&srpin);
-	}*/
 }
 
 int32_t stepper_get_remaining_steps(void) {
