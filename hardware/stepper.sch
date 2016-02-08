@@ -1,4 +1,5 @@
 EESchema Schematic File Version 2
+LIBS:tinkerforge
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -10,7 +11,6 @@ LIBS:cmos4000
 LIBS:adc-dac
 LIBS:memory
 LIBS:xilinx
-LIBS:special
 LIBS:microcontrollers
 LIBS:dsp
 LIBS:microchip
@@ -29,24 +29,23 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:tinkerforge
 LIBS:stepper-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 5
-Title "Stepper Brick"
-Date "Mi 24 Jun 2015"
-Rev "1.3"
+Title "Silent Stepper Brick"
+Date "2016-02-08"
+Rev "1.0"
 Comp "Tinkerforge GmbH"
 Comment1 "Licensed under CERN OHL v.1.1"
-Comment2 "Copyright (©) 2015, B.Nordmeyer <bastian@tinkerforge.com>"
+Comment2 "Copyright (©) 2016, B.Nordmeyer <bastian@tinkerforge.com>"
 Comment3 ""
 Comment4 ""
 $EndDescr
 Text Notes 550  7700 0    40   ~ 0
-Copyright Tinkerforge GmbH 2015.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions\n
+Copyright Tinkerforge GmbH 2016.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions\n
 Wire Wire Line
 	2750 1500 1700 1500
 Wire Wire Line
@@ -256,10 +255,10 @@ F 3 "" H 9150 3550 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR01
+L GND #PWR110
 U 1 1 4D0EF6F0
 P 9000 4350
-F 0 "#PWR01" H 9000 4350 30  0001 C CNN
+F 0 "#PWR110" H 9000 4350 30  0001 C CNN
 F 1 "GND" H 9000 4280 30  0001 C CNN
 F 2 "" H 9000 4350 60  0001 C CNN
 F 3 "" H 9000 4350 60  0001 C CNN
@@ -267,10 +266,10 @@ F 3 "" H 9000 4350 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR02
+L GND #PWR111
 U 1 1 4D0EF6E7
 P 9450 4350
-F 0 "#PWR02" H 9450 4350 30  0001 C CNN
+F 0 "#PWR111" H 9450 4350 30  0001 C CNN
 F 1 "GND" H 9450 4280 30  0001 C CNN
 F 2 "" H 9450 4350 60  0001 C CNN
 F 3 "" H 9450 4350 60  0001 C CNN
@@ -278,10 +277,10 @@ F 3 "" H 9450 4350 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR03
+L GND #PWR109
 U 1 1 4D0EF6E5
 P 8850 4350
-F 0 "#PWR03" H 8850 4350 30  0001 C CNN
+F 0 "#PWR109" H 8850 4350 30  0001 C CNN
 F 1 "GND" H 8850 4280 30  0001 C CNN
 F 2 "" H 8850 4350 60  0001 C CNN
 F 3 "" H 8850 4350 60  0001 C CNN
@@ -294,7 +293,7 @@ U 1 1 4D0EF5DB
 P 9450 4050
 F 0 "C104" H 9500 4150 50  0000 L CNN
 F 1 "DNP" H 9500 3950 50  0000 L CNN
-F 2 "kicad-libraries:0402" H 9450 4050 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 9450 4050 60  0001 C CNN
 F 3 "" H 9450 4050 60  0001 C CNN
 	1    9450 4050
 	1    0    0    -1  
@@ -305,7 +304,7 @@ U 1 1 4D0EF5CC
 P 8850 4050
 F 0 "C103" H 8900 4150 50  0000 L CNN
 F 1 "DNP" H 8650 3950 50  0000 L CNN
-F 2 "kicad-libraries:0402" H 8850 4050 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 8850 4050 60  0001 C CNN
 F 3 "" H 8850 4050 60  0001 C CNN
 	1    8850 4050
 	1    0    0    -1  
@@ -324,10 +323,10 @@ Text GLabel 2950 6400 2    60   Input ~ 0
 STACK-RESET
 NoConn ~ 6600 5800
 $Comp
-L 3V3 #PWR04
+L 3V3 #PWR104
 U 1 1 4CBEA182
 P 4850 1400
-F 0 "#PWR04" H 4850 1500 40  0001 C CNN
+F 0 "#PWR104" H 4850 1500 40  0001 C CNN
 F 1 "3V3" H 4850 1525 40  0000 C CNN
 F 2 "" H 4850 1400 60  0001 C CNN
 F 3 "" H 4850 1400 60  0001 C CNN
@@ -378,10 +377,10 @@ STACK-SYNC/JTAG-TCK
 Text GLabel 2650 5200 2    60   Input ~ 0
 STACK-DETECT/JTAG-TMS
 $Comp
-L GND #PWR05
+L GND #PWR106
 U 1 1 4C7E70E6
 P 5050 4550
-F 0 "#PWR05" H 5050 4550 30  0001 C CNN
+F 0 "#PWR106" H 5050 4550 30  0001 C CNN
 F 1 "GND" H 5050 4480 30  0001 C CNN
 F 2 "" H 5050 4550 60  0001 C CNN
 F 3 "" H 5050 4550 60  0001 C CNN
@@ -396,7 +395,7 @@ U 1 1 4C7E70C2
 P 5050 4250
 F 0 "R104" V 4950 4250 50  0000 C CNN
 F 1 "27k" V 5050 4250 50  0000 C CNN
-F 2 "kicad-libraries:0402" H 5050 4250 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 5050 4250 60  0001 C CNN
 F 3 "" H 5050 4250 60  0001 C CNN
 	1    5050 4250
 	-1   0    0    1   
@@ -407,7 +406,7 @@ U 1 1 4C7E70BB
 P 4800 4250
 F 0 "R103" V 4700 4250 50  0000 C CNN
 F 1 "18k" V 4800 4250 50  0000 C CNN
-F 2 "kicad-libraries:0402" H 4800 4250 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 4800 4250 60  0001 C CNN
 F 3 "" H 4800 4250 60  0001 C CNN
 	1    4800 4250
 	-1   0    0    1   
@@ -445,7 +444,7 @@ U 1 1 4C46F5AA
 P 6200 6000
 F 0 "FB102" H 6200 6150 60  0000 C CNN
 F 1 "FB" H 6200 5900 60  0000 C CNN
-F 2 "kicad-libraries:0603" H 6200 6000 60  0001 C CNN
+F 2 "kicad-libraries:0603E" H 6200 6000 60  0001 C CNN
 F 3 "" H 6200 6000 60  0001 C CNN
 	1    6200 6000
 	1    0    0    -1  
@@ -453,10 +452,10 @@ $EndComp
 Text GLabel 4750 4800 0    60   Output ~ 0
 VUSB
 $Comp
-L 3V3 #PWR06
+L 3V3 #PWR102
 U 1 1 4C45BA2A
 P 3800 7100
-F 0 "#PWR06" H 3800 7200 40  0001 C CNN
+F 0 "#PWR102" H 3800 7200 40  0001 C CNN
 F 1 "3V3" H 3800 7225 40  0000 C CNN
 F 2 "" H 3800 7100 60  0001 C CNN
 F 3 "" H 3800 7100 60  0001 C CNN
@@ -464,10 +463,10 @@ F 3 "" H 3800 7100 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR07
+L GND #PWR101
 U 1 1 4C45B9F7
 P 3650 6750
-F 0 "#PWR07" H 3650 6750 30  0001 C CNN
+F 0 "#PWR101" H 3650 6750 30  0001 C CNN
 F 1 "GND" H 3650 6680 30  0001 C CNN
 F 2 "" H 3650 6750 60  0001 C CNN
 F 3 "" H 3650 6750 60  0001 C CNN
@@ -502,7 +501,7 @@ U 1 1 4C45A20F
 P 3500 5700
 F 0 "R102" V 3600 5700 50  0000 C CNN
 F 1 "27" V 3500 5700 50  0000 C CNN
-F 2 "kicad-libraries:0402" H 3500 5700 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 3500 5700 60  0001 C CNN
 F 3 "" H 3500 5700 60  0001 C CNN
 	1    3500 5700
 	0    1    1    0   
@@ -513,16 +512,16 @@ U 1 1 4C45A1F3
 P 3500 5600
 F 0 "R101" V 3400 5600 50  0000 C CNN
 F 1 "27" V 3500 5600 50  0000 C CNN
-F 2 "kicad-libraries:0402" H 3500 5600 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 3500 5600 60  0001 C CNN
 F 3 "" H 3500 5600 60  0001 C CNN
 	1    3500 5600
 	0    1    1    0   
 $EndComp
 $Comp
-L GND #PWR08
+L GND #PWR108
 U 1 1 4C45A1A8
 P 5800 6200
-F 0 "#PWR08" H 5800 6200 30  0001 C CNN
+F 0 "#PWR108" H 5800 6200 30  0001 C CNN
 F 1 "GND" H 5800 6130 30  0001 C CNN
 F 2 "" H 5800 6200 60  0001 C CNN
 F 3 "" H 5800 6200 60  0001 C CNN
@@ -535,7 +534,7 @@ U 1 1 4C45A11D
 P 5150 4800
 F 0 "FB101" H 5150 4950 60  0000 C CNN
 F 1 "FB" H 5150 4700 60  0000 C CNN
-F 2 "kicad-libraries:0603" H 5150 4800 60  0001 C CNN
+F 2 "kicad-libraries:0603E" H 5150 4800 60  0001 C CNN
 F 3 "" H 5150 4800 60  0001 C CNN
 	1    5150 4800
 	1    0    0    -1  
@@ -615,7 +614,7 @@ U 1 1 5135DC00
 P 4800 5050
 F 0 "C101" H 4850 5150 50  0000 L CNN
 F 1 "1µF" H 4850 4950 50  0000 L CNN
-F 2 "kicad-libraries:0402" H 4800 5050 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 4800 5050 60  0001 C CNN
 F 3 "" H 4800 5050 60  0001 C CNN
 	1    4800 5050
 	1    0    0    -1  
@@ -626,16 +625,16 @@ U 1 1 5135DC44
 P 5500 5050
 F 0 "C102" H 5550 5150 50  0000 L CNN
 F 1 "1µF" H 5550 4950 50  0000 L CNN
-F 2 "kicad-libraries:0402" H 5500 5050 60  0001 C CNN
+F 2 "kicad-libraries:0402E" H 5500 5050 60  0001 C CNN
 F 3 "" H 5500 5050 60  0001 C CNN
 	1    5500 5050
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR09
+L GND #PWR103
 U 1 1 5135DC4A
 P 4800 5300
-F 0 "#PWR09" H 4800 5300 30  0001 C CNN
+F 0 "#PWR103" H 4800 5300 30  0001 C CNN
 F 1 "GND" H 4800 5230 30  0001 C CNN
 F 2 "" H 4800 5300 60  0001 C CNN
 F 3 "" H 4800 5300 60  0001 C CNN
@@ -643,10 +642,10 @@ F 3 "" H 4800 5300 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR010
+L GND #PWR107
 U 1 1 5135DC50
 P 5500 5300
-F 0 "#PWR010" H 5500 5300 30  0001 C CNN
+F 0 "#PWR107" H 5500 5300 30  0001 C CNN
 F 1 "GND" H 5500 5230 30  0001 C CNN
 F 2 "" H 5500 5300 60  0001 C CNN
 F 3 "" H 5500 5300 60  0001 C CNN
@@ -742,10 +741,10 @@ Wire Wire Line
 Wire Wire Line
 	4700 7100 4700 7000
 $Comp
-L GND #PWR011
+L GND #PWR105
 U 1 1 558AA61F
 P 4950 7200
-F 0 "#PWR011" H 4950 7200 30  0001 C CNN
+F 0 "#PWR105" H 4950 7200 30  0001 C CNN
 F 1 "GND" H 4950 7130 30  0001 C CNN
 F 2 "" H 4950 7200 60  0001 C CNN
 F 3 "" H 4950 7200 60  0001 C CNN
@@ -790,8 +789,4 @@ Wire Wire Line
 	3750 1600 1700 1600
 Wire Wire Line
 	3850 1700 1700 1700
-Text Notes 2000 3100 0    512  ~ 0
-TODO\nDetermine max Voltage
-Text Notes 8000 5250 0    197  ~ 0
-Bricklet Port Encoder?\nneeds TIOA0, TIOB0 and TIOA1
 $EndSCHEMATC
