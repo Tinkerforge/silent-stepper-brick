@@ -5,7 +5,7 @@
     (no_connects 2)
     (area 125.845139 71.945139 283.420502 165.440043)
     (thickness 1.6002)
-    (drawings 63)
+    (drawings 64)
     (tracks 2561)
     (zones 0)
     (modules 125)
@@ -23,7 +23,7 @@
   )
 
   (layers
-    (0 Vorderseite signal)
+    (0 Vorderseite signal hide)
     (1 GND signal hide)
     (2 VCC signal hide)
     (31 Rückseite signal hide)
@@ -9785,6 +9785,9 @@
     )
   )
 
+  (gr_text "check height" (at 155.75 99.75) (layer F.SilkS)
+    (effects (font (size 0.29972 0.29972) (thickness 0.07493)))
+  )
   (gr_text "Silent\nStepper\n1.0" (at 163.8 103.85) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
