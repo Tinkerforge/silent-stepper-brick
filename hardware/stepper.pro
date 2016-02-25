@@ -1,4 +1,4 @@
-update=Mo 08 Feb 2016 17:04:21 CET
+update=Do 25 Feb 2016 09:34:05 CET
 version=1
 last_client=kicad
 [general]
@@ -43,16 +43,6 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
-[schematic_editor]
-version=1
-PageLayoutDescrFile=
-PlotDirectoryName=
-SubpartIdSeparator=0
-SubpartFirstId=65
-NetFmtName=Pcbnew
-SpiceForceRefPrefix=0
-SpiceUseNetNumbers=0
-LabSize=60
 [pcbnew]
 version=1
 PageLayoutDescrFile=
@@ -72,3 +62,13 @@ SolderMaskMinWidth=0
 DrawSegmentWidth=0.09906
 BoardOutlineThickness=0.09906
 ModuleOutlineThickness=0.39878
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=Pcbnew
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
