@@ -119,18 +119,18 @@
 
 
 // SPI
-#define PIN_SPI_MISO        {1 << 12, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
-#define PIN_SPI_MOSI        {1 << 13, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
-#define PIN_SPI_SPCK        {1 << 14, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_SPI_MISO        {1 << 12, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
+#define PIN_SPI_MOSI        {1 << 13, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
+#define PIN_SPI_SPCK        {1 << 14, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
 
 #define PINS_SPI            PIN_SPI_MISO, PIN_SPI_MOSI, PIN_SPI_SPCK
 
-#define PIN_SPI_SELECT_SLAVE  {1 << 11, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_SPI_SELECT_SLAVE  {1 << 11, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
 
 // LED
-#define PIN_LED_STD_BLUE    {1 << 10, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
-#define PIN_LED_STD_RED     {1 << 9, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
-#define PINS_STD_LED        PIN_LED_STD_BLUE, PIN_LED_STD_RED
+#define PIN_LED_STD_BLUE    {1 << 10, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
+#define PIN_LED_STD_RED     {1 << 9, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
+#define PINS_STD_LED        PIN_LED_STD_BLUE, PIN_LED_STD_RED 
 #define PINS_LED            PINS_STD_LED
 
 #define LED_STD_BLUE        0
@@ -140,7 +140,7 @@
 // Brick Detect
 // Set low by master
 // TODO: Change name
-#define PIN_DETECT        {1 << 6, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT}
+#define PIN_DETECT        {1 << 6, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT} //
 
 
 
@@ -160,20 +160,20 @@
 #define BRICKLET_A_ADDRESS 84
 #define BRICKLET_A_ADC_CHANNEL 4
 
-#define BRICKLET_A_PIN_1_AD   {1 << 0, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
-#define BRICKLET_A_PIN_2_DA   {1 << 2, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
-#define BRICKLET_A_PIN_3_PWM  {1 << 0, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
-#define BRICKLET_A_PIN_4_IO   {1 << 25, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_A_PIN_1_AD   {1 << 0, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_A_PIN_2_DA   {1 << 2, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_A_PIN_3_PWM  {1 << 0, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_A_PIN_4_IO   {1 << 25, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
 #define BRICKLET_A_PIN_SELECT {0, 0, 0, 0, 0}
 
 // BRICKLET B
 #define BRICKLET_B_ADDRESS 80
 #define BRICKLET_B_ADC_CHANNEL 5
 
-#define BRICKLET_B_PIN_1_AD   {1 << 1, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
-#define BRICKLET_B_PIN_2_DA   {1 << 3, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
-#define BRICKLET_B_PIN_3_PWM  {1 << 1, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
-#define BRICKLET_B_PIN_4_IO   {1 << 16, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_B_PIN_1_AD   {1 << 1, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_B_PIN_2_DA   {1 << 3, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_B_PIN_3_PWM  {1 << 1, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_B_PIN_4_IO   {1 << 16, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
 #define BRICKLET_B_PIN_SELECT {0, 0, 0, 0, 0}
 
 // *************** STEPPER DEBUGGING **************
@@ -191,30 +191,57 @@
 #define logstepperf(str, ...) {}
 #endif
 #endif
-
-// *************** TMC2100 PINS ***************
-#define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
-#define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT}
-#define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT}
-#define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT}
+/*
+#define PIN_ENABLE      {1 << 25, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //Bricklet A
+#define PIN_STEP        {1 << 0, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} //Bricklet A
+#define PIN_DIRECTION   {1 << 0, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT} //Bricklet A
+#define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
+#define PIN_CLK			{1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //use internal clock
+#define PIN_PWR_SW_3V3  {1 << 8, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //enable 3V3
 
 #define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
 #define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
 #define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
-#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input disabled
+//#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
 #define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
 #define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
-#define PIN_DCO        	{1 << 29, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // DCO, N.C.
-#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // DIAG1
-#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // DIAG0
-#define PIN_SPI_MODE    {1 << 8,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SPI_MODE, TMC2100 GND
+#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG1, Index
+#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG0, Error
+
+#define PINS_STEPPER    PIN_ENABLE, PIN_STEP, PIN_DIRECTION, PIN_VREF, \
+                        PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG4, \
+                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_CLK, PIN_PWR_SW_3V3
+
+#define PINS_CONFIG     PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG4, \
+                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0
+
+*/
+
+
+// *************** TMC2100 PINS ***************
+#define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
+#define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} //
+#define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
+#define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
+
+#define PIN_CLK			{1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //use internal clock
+#define PIN_PWR_SW_3V3  {1 << 8, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //enable 3V3
+
+#define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
+#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
+#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
+#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
+#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
+#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
+#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG1, Index
+#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG0, Error
 
 #define PINS_STEPPER    PIN_ENABLE, PIN_STEP, PIN_DIRECTION, PIN_VREF, \
                         PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG3, PIN_CFG4, \
-                        PIN_CFG5, PIN_DCO, PIN_DIAG1, PIN_DIAG0, PIN_SPI_MODE
+                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_CLK, PIN_PWR_SW_3V3
 
 #define PINS_CONFIG     PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG3, PIN_CFG4, \
-                        PIN_CFG5, PIN_DCO, PIN_DIAG1, PIN_DIAG0, PIN_SPI_MODE
+                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0
 
 #define CFG_0        0
 #define CFG_1        1
@@ -237,7 +264,7 @@
 #define VOLTAGE_STACK_MULTIPLIER 11
 #define VOLTAGE_STACK_REFERENCE 3300
 #define VOLTAGE_STACK_PIN {1 << 20, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN}
-#define VOLTAGE_STACK_SWITCH_PIN {1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
+#define VOLTAGE_STACK_SWITCH_PIN {1 << 29, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
 
 #define VOLTAGE_EXTERN_CHANNEL 2
 #define VOLTAGE_EXTERN_MULTIPLIER 11
@@ -257,10 +284,10 @@
 #define STEPPER_CURRENT_CHANNEL 1
 #define STEPPER_CURRENT_MULTIPLIER 2
 #define STEPPER_CURRENT_REFERENCE 3300
-#define STEPPER_CURRENT_PIN {1 << 18, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN}
+#define STEPPER_CURRENT_PIN {1 << 18, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN} //????? gibt es nicht mehr!
 
-// 15: 0.01 Ohm Resistor
+// 15: 0.012 Ohm Resistor
 // 1/6: Minimum value for DAC
 // 5/6: Maximim value for DAC
 #define VREF_MIN_CURRENT 0
-#define VREF_MAX_CURRENT 1920
+#define VREF_MAX_CURRENT 1640*3.3/2.5

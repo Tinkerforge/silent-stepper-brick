@@ -45,6 +45,7 @@ Pin pin_step = PIN_STEP;
 Pin pin_direction = PIN_DIRECTION;
 Pin pin_vref = PIN_VREF;
 Pin pin_voltage_switch = VOLTAGE_STACK_SWITCH_PIN;
+Pin pin_3v3 = PIN_PWR_SW_3V3;
 
 Pin stepper_config[] = {PINS_CONFIG};
 
@@ -94,6 +95,8 @@ uint8_t stepper_standstill_power_down = STEPPER_STANDSTILL_POWER_DOWN_ON;
 uint8_t stepper_chopper_off_time      = STEPPER_CHOPPER_OFF_TIME_LOW;
 uint8_t stepper_chopper_hysteresis    = STEPPER_CHOPPER_HYSTERESIS_LOW;
 uint8_t stepper_chopper_blank_time    = STEPPER_CHOPPER_BLANK_TIME_LOW;
+
+bool silent_mode_switched = false;
 
 const uint32_t stepper_timer_frequency[] = {BOARD_MCK/2,
                                             BOARD_MCK/8,
@@ -332,6 +335,8 @@ void stepper_all_data_signal(void) {
 }
 
 void stepper_init(void) {
+	stepper_reset();
+
 	Pin pins_stepper[] = {PINS_STEPPER};
 	PIO_Configure(pins_stepper, PIO_LISTSIZE(pins_stepper));
 
@@ -341,7 +346,6 @@ void stepper_init(void) {
 	                                       STEPPER_CURRENT_PIN};
 	PIO_Configure(stepper_power_management_pins,
 	              PIO_LISTSIZE(stepper_power_management_pins));
-
 	// Initialize and enable DACC to set VREF and DECAY pins
 	
     DACC_Initialize(DACC,
@@ -394,6 +398,31 @@ void stepper_init(void) {
 	adc_channel_enable(VOLTAGE_EXTERN_CHANNEL);
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
 	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
+}
+
+void stepper_reset(void) {
+    
+    // Do driver reset (disable power)
+	pin_3v3.type = PIO_OUTPUT_0;
+	PIO_Configure(&pin_3v3, 1);
+    
+    // Set all control pins to output0 to disable powering via input 
+    // protection diodes
+    Pin pins_stepper_tmp[] = {PINS_STEPPER};
+    for(int i=0; i < PIO_LISTSIZE(pins_stepper_tmp); i++) {
+        pins_stepper_tmp[i].type = PIO_OUTPUT_0;
+        PIO_Configure(&pins_stepper_tmp[i], 1);
+    }
+       
+	SLEEP_MS(40);
+    
+    // Restore power to driver
+	pin_3v3.type = PIO_OUTPUT_1;
+	PIO_Configure(&pin_3v3, 1);
+    
+    // Set all control pins back to default
+    Pin pins_stepper[] = {PINS_STEPPER};
+	PIO_Configure(pins_stepper, PIO_LISTSIZE(pins_stepper));
 }
 
 void stepper_set_next_timer(const uint32_t velocity) {
@@ -529,6 +558,25 @@ void stepper_drive_speedramp(void) {
 	   (stepper_speedramp_state != stepper_direction)) {
 		goal = 0;
 	}
+    
+    if(stepper_velocity > 15000 && !silent_mode_switched) {
+        silent_mode_switched = true;
+        if(stepper_step_mode == STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE) { //batti
+            stepper_set_step_mode(STEP_MODE_NORMAL_SIXTEENTH);
+        }
+        if(stepper_step_mode == STEP_MODE_SILENT_QUARTER_INTERPOLATE) {
+            stepper_set_step_mode(STEP_MODE_NORMAL_QUARTER);
+        }
+    }
+    if(silent_mode_switched && stepper_velocity < 15000) {
+        silent_mode_switched = false;
+        if(stepper_step_mode == STEP_MODE_NORMAL_SIXTEENTH) { //batti
+            stepper_set_step_mode(STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE);
+        }
+        if(stepper_step_mode == STEP_MODE_NORMAL_QUARTER) {
+            stepper_set_step_mode(STEP_MODE_SILENT_QUARTER_INTERPOLATE);
+        }
+    }
 
 	if(goal == stepper_velocity) {
 		if(stepper_speedramp_state == STEPPER_SPEEDRAMP_STATE_STOP) {
@@ -626,6 +674,7 @@ void TC0_IrqHandler(void) {
 	}
 }
 
+
 void stepper_set_direction(const int8_t direction) {
 	if(direction == stepper_direction) {
 		return;
@@ -648,12 +697,13 @@ void stepper_set_direction(const int8_t direction) {
 void stepper_enable_pin_apply(void) {
 	if(stepper_state == STEPPER_STATE_OFF) {
 		pin_enable.type = PIO_OUTPUT_1;
-	} else {
-		if(stepper_standstill_power_down == STEPPER_STANDSTILL_POWER_DOWN_ON) {
-			pin_enable.type = PIO_INPUT;
-		} else {
+	} //else {
+//		if(stepper_standstill_power_down == STEPPER_STANDSTILL_POWER_DOWN_ON) {
+//			pin_enable.type = PIO_INPUT;
+//		} 
+else {
 			pin_enable.type = PIO_OUTPUT_0;
-		}
+//		}
 	}
 
 	PIO_Configure(&pin_enable, 1);

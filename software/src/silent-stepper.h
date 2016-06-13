@@ -106,6 +106,7 @@
 
 void new_connection(void);
 void stepper_init(void);
+void stepper_reset(void);
 void stepper_set_output_current(const uint16_t current);
 void stepper_set_step_mode(const uint8_t mode);
 uint8_t stepper_get_step_mode(void);
