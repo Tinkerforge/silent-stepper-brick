@@ -1245,4 +1245,6 @@ Wire Wire Line
 Connection ~ 5350 2600
 Text Notes 7400 4150 0    39   ~ 0
 set SPI
+Text Notes 4250 2550 0    60   ~ 0
+connect directly to 3V3
 $EndSCHEMATC
