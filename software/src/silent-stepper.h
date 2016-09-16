@@ -137,5 +137,11 @@ void stepper_state_signal(void);
 void stepper_set_new_api_state(const uint8_t new_state);
 void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time);
 
+// New
+void stepper_IO_active(const bool status); // enable/disable power supply to TMC2130 chip
+void SPI_init(void);
+void spi_write_register(const uint8_t address, const uint8_t value);
+uint8_t spi_read_register(const uint8_t address);
+
 void TC0_IrqHandler(void);
 #endif

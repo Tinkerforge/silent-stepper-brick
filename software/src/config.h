@@ -28,7 +28,7 @@
 
 #define BRICK_FIRMWARE_VERSION_MAJOR 2
 #define BRICK_FIRMWARE_VERSION_MINOR 0
-#define BRICK_FIRMWARE_VERSION_REVISION 0
+#define BRICK_FIRMWARE_VERSION_REVISION 1
 
 #define BRICK_HARDWARE_VERSION_MAJOR 1
 #define BRICK_HARDWARE_VERSION_MINOR 0
@@ -46,9 +46,9 @@
 //#define PROFILING_TIME 100 // After how many seconds profiling is printed
 
 #define DISABLE_JTAG_ON_STARTUP
-//#define LOGGING_SERIAL
-//#define LOGGING_LEVEL LOGGING_DEBUG
-#define LOGGING_LEVEL LOGGING_NONE
+#define LOGGING_SERIAL
+#define LOGGING_LEVEL LOGGING_DEBUG
+//#define LOGGING_LEVEL LOGGING_NONE
 
 
 // ************** BRICK SETTINGS **************
@@ -58,6 +58,7 @@
 #define BOARD_MAINOSC  16000000 // Frequency of oscillator
 #define BOARD_ADC_FREQ 16000000 // Frequency of ADC
 #define BOARD_OSC_EXTERNAL      // Use external oscillator
+#define SPI_FREQ       2000000  // Frequency of SPI communication to TMC2130
 
 
 // UART for console output (printf)
@@ -142,8 +143,6 @@
 // TODO: Change name
 #define PIN_DETECT        {1 << 6, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT} //
 
-
-
 // ************** INTERRUPT PRIORITIES ***********
 #define PRIORITY_EEPROM_MASTER_TWI0  1
 #define PRIORITY_EEPROM_SLAVE_TWI1   1
@@ -191,68 +190,51 @@
 #define logstepperf(str, ...) {}
 #endif
 #endif
-/*
-#define PIN_ENABLE      {1 << 25, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //Bricklet A
-#define PIN_STEP        {1 << 0, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} //Bricklet A
-#define PIN_DIRECTION   {1 << 0, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT} //Bricklet A
-#define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
-#define PIN_CLK			{1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //use internal clock
-#define PIN_PWR_SW_3V3  {1 << 8, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //enable 3V3
-
-#define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
-#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
-#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
-//#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
-#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
-#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
-#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG1, Index
-#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG0, Error
-
-#define PINS_STEPPER    PIN_ENABLE, PIN_STEP, PIN_DIRECTION, PIN_VREF, \
-                        PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG4, \
-                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_CLK, PIN_PWR_SW_3V3
-
-#define PINS_CONFIG     PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG4, \
-                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0
-
-*/
 
 
-// *************** TMC2100 PINS ***************
+// *************** TMC2130 PINS ***************
 #define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
 #define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} //
 #define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
 #define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
 
-#define PIN_CLK			{1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //use internal clock
-#define PIN_PWR_SW_3V3  {1 << 8, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //enable 3V3
+#define PIN_CLK         {1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //use internal clock
+#define PIN_PWR_SW_3V3  {1 << 8,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //enable 3V3
 
-#define PIN_CFG0        {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
-#define PIN_CFG1     	{1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
-#define PIN_CFG2   		{1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
-#define PIN_CFG3     	{1 << 7,  PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
+#define PIN_PWR_SDO     {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
+#define PIN_PWR_SDI     {1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
+#define PIN_PWR_SCK     {1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
+#define PIN_PWR_CS      {1 << 7,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
 #define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
 #define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
-#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG1, Index
-#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP} // DIAG0, Error
+#define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP}  // DIAG1, Index
+#define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP}  // DIAG0, Error
 
-#define PINS_STEPPER    PIN_ENABLE, PIN_STEP, PIN_DIRECTION, PIN_VREF, \
-                        PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG3, PIN_CFG4, \
-                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_CLK, PIN_PWR_SW_3V3
+#define PINS_CONFIG     PIN_PWR_SDO, PIN_PWR_SDI, PIN_PWR_SCK, PIN_PWR_CS, PIN_CFG4, \
+                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_PWR_SW_3V3
 
-#define PINS_CONFIG     PIN_CFG0, PIN_CFG1, PIN_CFG2, PIN_CFG3, PIN_CFG4, \
-                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0
+#define PINS_ACTIVE     PIN_PWR_SDO, PIN_PWR_SDI, PIN_PWR_SCK, PIN_PWR_CS, PIN_CFG4, \
+                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_PWR_SW_3V3, PIN_CLK, PIN_ENABLE, \
+                        PIN_STEP, PIN_DIRECTION, PIN_VREF
 
-#define CFG_0        0
-#define CFG_1        1
-#define CFG_2        2
-#define CFG_3        3
-#define CFG_4        4
-#define CFG_5        5
-#define CFG_DCO      6
-#define CFG_DIAG1    7
-#define CFG_DIAG0    8
-#define CFG_SPI_MODE 9
+#define PWR_SDO        0 // SPI Data Output
+#define PWR_SDI        1 // SPI Data Input
+#define PWR_SCK        2 // SPI serial clock input
+#define PWR_CS         3 // SPI chip select input (negative active)
+#define CFG_4          4 // dcStep enable input (SPI_MODE=1) - tie to GND for normal operation (no dcStep)
+#define CFG_5          5 // dcStep gating input for axis synchronization (SPI_MODE=1)
+#define CFG_DIAG1      6 // Diagnostic Outputs
+#define CFG_DIAG0      7 //     "        "
+#define PWR_SW_3V3     8 // *
+#define PWR_CLK        9 // *
+#define PWR_ENABLE    10 // *
+#define PWR_STEP      11 // * ToDo
+#define PWR_DIRECTION 12 // *
+#define PWR_VREF      13 // *
+
+#define CFG_DCO        14 // dcStep ready output
+//ToDo: dcStep DCO Pin for load dependet speed control -> Page 3 (datasheet)
+//#define CFG_SPI_MODE   15 // SPI mode selector =1 when activated
 
 // ************** POWER MANAGEMENT **************
 #define VOLTAGE_MAX_VALUE 4095
@@ -291,3 +273,47 @@
 // 5/6: Maximim value for DAC
 #define VREF_MIN_CURRENT 0
 #define VREF_MAX_CURRENT 1640*3.3/2.5
+
+// ****************** REGISTERS *****************
+// R is read-only / W is write-only / R+C is clear upon read
+
+//GENERAL CONFIGURATION REGISTERS (0x00...0x0F)
+#define GCONF		0x00	// RW
+#define GSTAT		0x01	// R+C
+#define IOIN		0x04	// R
+
+//VELOCITY DEPENDENT DRIVER FEATURE CONTROL REGISTER SET (0x10...0x1F)
+#define IHOLD_IRUN	0x10	//  W
+#define TPOWERDOWN	0x11	//  W
+#define TSTEP		0x12	// R
+#define TPWMTHRS	0x13	//  W
+#define TCOOLTHRS	0x14	//  W
+#define THIGH		0x15	//  W
+
+//SPI MODE REGISTER (0x2D)
+#define XDIRECT		0x2D	// RW
+
+//DC-Step MINIMUM VELOCITY REGISTER (0x33)
+#define VDCMIN		0x33	//  W
+
+//MICROSTEPPING CONTROL REGISTER SET (0x60...0x6B)
+#define MSLUT0		0x60	//  W
+#define MSLUT1		0x61	//  W
+#define MSLUT2		0x62	//  W
+#define MSLUT3		0x63	//  W
+#define MSLUT4		0x64	//  W
+#define MSLUT5		0x65	//  W
+#define MSLUT6		0x66	//  W
+#define MSLUT7		0x67	//  W
+#define MSLUTSEL	0x68	//  W
+#define MSLUTSTART	0x69	//  W
+#define MSCNT		0x6A	// R
+#define MSCURACT	0x6B	// R
+#define CHOPCONF	0x6C	// RW
+#define COOLCONF	0x6D	//  W
+#define DCCTRL		0x6E	//  W
+#define DRV_STATUS	0x6F	// R
+#define PWMCONF		0x70	//  W
+#define PWM_SCALE	0x71	// R
+#define ENCM_CTRL	0x72	//  W
+#define LOST_STEPS	0x73	// R
