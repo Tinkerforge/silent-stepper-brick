@@ -114,7 +114,6 @@ uint16_t stepper_get_external_voltage(void);
 uint16_t stepper_get_stack_voltage(void);
 void tick_task(const uint8_t tick_type);
 void stepper_set_direction(const int8_t direction);
-void TC1_IrqHandler(void);
 void stepper_position_reached_signal(void);
 bool stepper_is_currently_running(void);
 void stepper_set_next_timer(const uint32_t velocity);
@@ -132,15 +131,6 @@ void stepper_all_data_signal(void);
 void stepper_state_signal(void);
 void stepper_set_new_api_state(const uint8_t new_state);
 void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time);
-
-// New
-void stepper_set_active(const bool active); // enable/disable power supply to TMC2130 chip
-void spi_init(void);
-void stepper_select(void);
-void stepper_deselect(void);
-void stepper_write_register(const uint8_t address, const uint32_t mask, const uint32_t value);
-uint32_t stepper_read_register(const uint8_t address);
-uint8_t spi_transceive_byte(const uint8_t value);
 
 void TC0_IrqHandler(void);
 
