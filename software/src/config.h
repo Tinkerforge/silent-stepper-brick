@@ -193,7 +193,7 @@
 
 
 // *************** TMC2130 PINS ***************
-#define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
+#define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
 #define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} //
 #define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
 #define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
@@ -274,46 +274,3 @@
 #define VREF_MIN_CURRENT 0
 #define VREF_MAX_CURRENT 1640*3.3/2.5
 
-// ****************** REGISTERS *****************
-// R is read-only / W is write-only / R+C is clear upon read
-
-//GENERAL CONFIGURATION REGISTERS (0x00...0x0F)
-#define GCONF		0x00	// RW
-#define GSTAT		0x01	// R+C
-#define IOIN		0x04	// R
-
-//VELOCITY DEPENDENT DRIVER FEATURE CONTROL REGISTER SET (0x10...0x1F)
-#define IHOLD_IRUN	0x10	//  W
-#define TPOWERDOWN	0x11	//  W
-#define TSTEP		0x12	// R
-#define TPWMTHRS	0x13	//  W
-#define TCOOLTHRS	0x14	//  W
-#define THIGH		0x15	//  W
-
-//SPI MODE REGISTER (0x2D)
-#define XDIRECT		0x2D	// RW
-
-//DC-Step MINIMUM VELOCITY REGISTER (0x33)
-#define VDCMIN		0x33	//  W
-
-//MICROSTEPPING CONTROL REGISTER SET (0x60...0x6B)
-#define MSLUT0		0x60	//  W
-#define MSLUT1		0x61	//  W
-#define MSLUT2		0x62	//  W
-#define MSLUT3		0x63	//  W
-#define MSLUT4		0x64	//  W
-#define MSLUT5		0x65	//  W
-#define MSLUT6		0x66	//  W
-#define MSLUT7		0x67	//  W
-#define MSLUTSEL	0x68	//  W
-#define MSLUTSTART	0x69	//  W
-#define MSCNT		0x6A	// R
-#define MSCURACT	0x6B	// R
-#define CHOPCONF	0x6C	// RW
-#define COOLCONF	0x6D	//  W
-#define DCCTRL		0x6E	//  W
-#define DRV_STATUS	0x6F	// R
-#define PWMCONF		0x70	//  W
-#define PWM_SCALE	0x71	// R
-#define ENCM_CTRL	0x72	//  W
-#define LOST_STEPS	0x73	// R
