@@ -398,8 +398,13 @@ bool stepper_is_currently_running(void) {
 }
 
 void stepper_make_step(void) {
-	// TODO: Just toggle pin here and set dedge to 1
-	tc_channel_start(&SINGLE_SHOT_TC_CHANNEL);
+	// We change step pin back and force for one step each (dedge = 1)
+	if(pin_step.pio->PIO_ODSR & pin_step.mask) {
+		pin_step.pio->PIO_CODR = pin_step.mask;
+	} else {
+		pin_step.pio->PIO_SODR = pin_step.mask;
+	}
+
 	stepper_position += stepper_direction;
 }
 

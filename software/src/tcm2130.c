@@ -212,7 +212,7 @@ TMC2130RegCHOPCONF tmc2130_reg_chopconf = {
 		.sync = 0, // chopsync_configuration
 		.mres = 0, // step_configuration
 		.intpol = 0, // step_configuration
-		.dedge = 0, // Always 0. TODO: Can we change the TC so we can use 1 here and have less steps?
+		.dedge = 1, // Always 1.
 		.diss2g = 0 // misc_configuration
 	}
 };
@@ -356,23 +356,9 @@ void tcm2130_set_active(const bool active) {
 		// Interrupt in compare
 		tc_channel_interrupt_set(&STEPPER_TC_CHANNEL, TC_IER_CPCS);
 
-		PMC->PMC_PCER0 = 1 << ID_TC1;
-		tc_channel_init(&SINGLE_SHOT_TC_CHANNEL,
-						TC_CMR_WAVE |
-						TC_CMR_TCCLKS_TIMER_CLOCK4 |
-						TC_CMR_EEVT_XC0 |
-						TC_CMR_ASWTRG_SET |
-						TC_CMR_ACPC_CLEAR |
-						TC_CMR_WAVSEL_UP |
-						TC_CMR_CPCDIS |
-						TC_CMR_CPCSTOP);
-
-		SINGLE_SHOT_COUNTER = 1;
-		tc_channel_start(&SINGLE_SHOT_TC_CHANNEL);
-
 		pins_active[PWR_ENABLE].type = PIO_OUTPUT_1;
 		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;
-		pins_active[PWR_STEP].type = PIO_PERIPH_B;
+		pins_active[PWR_STEP].type = PIO_OUTPUT_1;
 		pins_active[PWR_STEP].attribute = PIO_DEFAULT;
 		pins_active[PWR_DIRECTION].type = PIO_OUTPUT_0;
 		pins_active[PWR_DIRECTION].attribute = PIO_DEFAULT;

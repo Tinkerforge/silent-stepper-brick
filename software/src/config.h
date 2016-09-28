@@ -194,7 +194,7 @@
 
 // *************** TMC2130 PINS ***************
 #define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
-#define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} //
+#define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
 #define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
 #define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
 
