@@ -29,6 +29,7 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
+LIBS:stepper-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -58,7 +59,7 @@ Wire Wire Line
 Wire Wire Line
 	1700 3000 2750 3000
 Wire Wire Line
-	1700 3400 2750 3400
+	1700 3400 3550 3400
 Wire Wire Line
 	1500 6000 2650 6000
 Wire Wire Line
@@ -166,8 +167,6 @@ Wire Wire Line
 	1500 4700 2650 4700
 Wire Wire Line
 	1700 2700 2750 2700
-Wire Wire Line
-	1700 3100 2750 3100
 Wire Wire Line
 	1700 3500 2750 3500
 Wire Wire Line
@@ -748,12 +747,8 @@ Text GLabel 2750 3800 2    60   Input ~ 0
 PWR-DIAG0
 Text GLabel 2650 6000 2    60   Output ~ 0
 STACK-INT
-Text GLabel 2750 3100 2    60   Input ~ 0
-PWR-CFG5
-Text GLabel 2750 2400 2    60   Input ~ 0
-PWR-CFG4
-Text GLabel 2750 3400 2    60   Output ~ 0
-PWR-DC0
+Text GLabel 4100 3400 2    60   Output ~ 0
+PWR-CLK
 Text GLabel 2750 900  2    60   Input ~ 0
 PWR-SCK
 Text GLabel 2750 1300 2    60   Input ~ 0
@@ -764,8 +759,6 @@ Wire Wire Line
 	1700 1300 2750 1300
 Text Notes 2400 1250 0    60   ~ 0
 USART0
-Wire Wire Line
-	1700 2400 2750 2400
 Wire Wire Line
 	3900 1800 3750 1800
 Wire Wire Line
@@ -781,14 +774,26 @@ Wire Wire Line
 	2750 1500 1700 1500
 Wire Wire Line
 	2750 3600 1700 3600
-Text Notes 3650 3650 0    60   ~ 0
-changed
-Text Notes 3350 3450 0    60   ~ 0
-changed
 Text Notes 3500 1550 0    60   ~ 0
 changed
 Text GLabel 2750 1400 2    60   Output ~ 0
 PWR-CS
 Wire Wire Line
 	1700 1400 2750 1400
+$Comp
+L R R105
+U 1 1 57F37DB8
+P 3800 3400
+F 0 "R105" V 3700 3400 50  0000 C CNN
+F 1 "1k" V 3800 3400 50  0000 C CNN
+F 2 "kicad-libraries:0402E" H 3800 3400 60  0001 C CNN
+F 3 "" H 3800 3400 60  0001 C CNN
+	1    3800 3400
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4100 3400 4050 3400
+NoConn ~ 1700 2400
+NoConn ~ 1700 3100
+NoConn ~ 3950 2650
 $EndSCHEMATC

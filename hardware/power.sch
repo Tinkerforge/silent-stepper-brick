@@ -29,6 +29,7 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
+LIBS:stepper-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -831,12 +832,8 @@ F 3 "" H 10100 4500 60  0001 C CNN
 	1    10100 4500
 	1    0    0    -1  
 $EndComp
-Text GLabel 6000 5700 0    60   Input ~ 0
-PWR-CFG5
-Text GLabel 6000 5800 0    60   Input ~ 0
-PWR-CFG4
-Text GLabel 6000 5600 0    60   Output ~ 0
-PWR-DC0
+Text GLabel 6000 5500 0    60   Output ~ 0
+PWR-CLK
 Text GLabel 5950 5000 0    60   Output ~ 0
 PWR-SCK
 Text GLabel 5950 5100 0    60   Output ~ 0
@@ -1109,10 +1106,6 @@ Wire Wire Line
 Wire Wire Line
 	6850 5200 5950 5200
 Wire Wire Line
-	6850 5700 6000 5700
-Wire Wire Line
-	6000 5800 6850 5800
-Wire Wire Line
 	6850 6100 6000 6100
 Wire Wire Line
 	6000 6200 6850 6200
@@ -1226,14 +1219,7 @@ Wire Wire Line
 Text GLabel 5950 4900 0    60   Output ~ 0
 PWR-CS
 Wire Wire Line
-	6850 5500 6400 5500
-Connection ~ 6400 5500
-Text Notes 7100 5500 0    39   ~ 0
-internal clock
-Wire Wire Line
 	5950 4900 6850 4900
-Wire Wire Line
-	6850 5600 6000 5600
 Wire Wire Line
 	5350 2600 5350 3700
 Wire Wire Line
@@ -1247,4 +1233,9 @@ Text Notes 7400 4150 0    39   ~ 0
 set SPI
 Text Notes 4250 2550 0    60   ~ 0
 connect directly to 3V3
+Wire Wire Line
+	6000 5500 6850 5500
+NoConn ~ 6850 5600
+NoConn ~ 6850 5700
+NoConn ~ 6850 5800
 $EndSCHEMATC
