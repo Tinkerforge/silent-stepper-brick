@@ -44,10 +44,6 @@
 #define STEPPER_TC_CHANNEL (TC0->TC_CHANNEL[STEPPER_TC_CHANNEL_NUM])
 #define STEPPER_COUNTER STEPPER_TC_CHANNEL.TC_RC
 
-#define SINGLE_SHOT_TC_CHANNEL_NUM 1
-#define SINGLE_SHOT_TC_CHANNEL (TC0->TC_CHANNEL[SINGLE_SHOT_TC_CHANNEL_NUM])
-#define SINGLE_SHOT_COUNTER SINGLE_SHOT_TC_CHANNEL.TC_RC
-
 #define STEP_MODE_NORMAL_FULL                  0
 #define STEP_MODE_NORMAL_HALF                  1
 #define STEP_MODE_NORMAL_HALF_INTERPOLATE      2
@@ -118,7 +114,6 @@ uint16_t stepper_get_external_voltage(void);
 uint16_t stepper_get_stack_voltage(void);
 void tick_task(const uint8_t tick_type);
 void stepper_set_direction(const int8_t direction);
-void TC1_IrqHandler(void);
 void stepper_position_reached_signal(void);
 bool stepper_is_currently_running(void);
 void stepper_set_next_timer(const uint32_t velocity);
@@ -137,11 +132,8 @@ void stepper_state_signal(void);
 void stepper_set_new_api_state(const uint8_t new_state);
 void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time);
 
-// New
-void stepper_IO_active(const bool status); // enable/disable power supply to TMC2130 chip
-void SPI_init(void);
-void spi_write_register(const uint8_t address, const uint8_t value);
-uint8_t spi_read_register(const uint8_t address);
-
 void TC0_IrqHandler(void);
+
+
+
 #endif

@@ -21,8 +21,11 @@
 
 #include "silent-stepper.h"
 
+#include <stdio.h>
+
 #include "config.h"
 #include "communication.h"
+#include "tcm2130.h"
 
 #include "bricklib/com/com.h"
 #include "bricklib/com/com_common.h"
@@ -38,18 +41,14 @@
 #include "bricklib/utility/util_definitions.h"
 #include "bricklib/utility/led.h"
 #include "bricklib/utility/init.h"
-#include <stdio.h>
 
 Pin pin_voltage_switch = VOLTAGE_STACK_SWITCH_PIN;
-Pin pin_3v3 = PIN_PWR_SW_3V3;
 
 Pin pin_enable =  PIN_ENABLE;
 Pin pin_step = PIN_STEP;
 Pin pin_direction = PIN_DIRECTION;
 Pin pin_vref = PIN_VREF;
 
-//Pin stepper_config[] = {PINS_CONFIG};
-Pin pins_active[] = {PINS_ACTIVE};
 
 uint32_t stepper_velocity_goal = STEPPER_VELOCITY_DEFAULT;
 uint32_t stepper_velocity = 0;
@@ -99,7 +98,6 @@ uint8_t stepper_chopper_hysteresis    = STEPPER_CHOPPER_HYSTERESIS_LOW;
 uint8_t stepper_chopper_blank_time    = STEPPER_CHOPPER_BLANK_TIME_LOW;
 
 bool silent_mode_switched = false;
-bool stepper_is_powered = false;
 
 const uint32_t stepper_timer_frequency[] = {BOARD_MCK/2,
                                             BOARD_MCK/8,
@@ -263,6 +261,8 @@ void tick_task(const uint8_t tick_type) {
 		stepper_tick_calc_counter++;
 		stepper_current_sum += adc_channel_get_data(STEPPER_CURRENT_CHANNEL);
 		if(stepper_tick_calc_counter % 100 == 0) {
+			uint32_t value = tcm2130_read_register(TMC2130_REG_TSTEP);
+			printf("tstep: %d\n\r", value);
 			stepper_current = stepper_current_sum/100;
 			stepper_current_sum = 0;
 		}
@@ -273,21 +273,12 @@ void tick_task(const uint8_t tick_type) {
 		} else {
 			PIO_Clear(&pin_voltage_switch);
 		}
+
 		// Power TMC2130 if external or stack voltage is connected and above voltage minimum
-		if(stepper_get_external_voltage() > STEPPER_VOLTAGE_EPSILON || stepper_get_stack_voltage() > STEPPER_VOLTAGE_EPSILON) {
-			PIO_Set(&pin_3v3);
-			if (stepper_is_powered == false) {
-				stepper_IO_active(true);
-				stepper_is_powered = true;
-			}
-			//printf("Strom\n\r");
+		if((stepper_get_external_voltage() > STEPPER_VOLTAGE_EPSILON) || (stepper_get_stack_voltage() > STEPPER_VOLTAGE_EPSILON)) {
+			tcm2130_set_active(true);
 		} else {
-			PIO_Clear(&pin_3v3);
-			if(stepper_is_powered == true) {
-				stepper_IO_active(false);
-				stepper_is_powered = false;
-			}
-			//printf("kein Strom\n\r");
+			tcm2130_set_active(false);
 		}
 
 		stepper_all_data_period_counter++;
@@ -354,264 +345,23 @@ void stepper_all_data_signal(void) {
 
 	send_blocking_with_timeout(&ads, sizeof(AllDataSignal), com_info.current);
 }
-void stepper_select(void) {
-	Pin pins_config[] = {PINS_CONFIG};
-	__disable_irq();
-	PIO_Clear(&pins_config[PWR_CS]);
-	SLEEP_NS(250);
-}
-void stepper_deselect(void) {
-	Pin pins_config[] = {PINS_CONFIG};
-	PIO_Set(&pins_config[PWR_CS]);
-	__enable_irq();
-	SLEEP_NS(250);
-}
 
-uint8_t spi_transceive_byte(const uint8_t value) {
-	// Wait for transfer buffer to be empty
-	while((USART0->US_CSR & US_CSR_TXEMPTY) == 0);
-	USART0->US_THR = value;
-
-	// Wait until receive buffer has new data
-	while((USART0->US_CSR & US_CSR_RXRDY) == 0);
-	return USART0->US_RHR;
-}
-
-void spi_write_register(const uint8_t address, const uint8_t value) {
-	stepper_select();
-
-	spi_transceive_byte(address | 0x80);
-	spi_transceive_byte(value);
-
-	stepper_deselect();
-}
-
-
-uint8_t spi_read_register(const uint8_t address) {
-	stepper_select();
-	spi_transceive_byte(address | 0x80);		//?!  CHIBI_SPI_RR
-	const uint8_t value = spi_transceive_byte(0);
-	stepper_deselect();
-	return value;
-}
-
-void SPI_init(void) {
-
-	// Enable peripheral clock
-	PMC->PMC_PCER0 = 1 << ID_USART0;
-	// Configure the USART0 as SPI
-	USART_Configure(USART0,
-					US_MR_USART_MODE_SPI_MASTER |
-					US_MR_USCLKS_MCK            |
-					US_MR_CHRL_8_BIT            |
-					US_MR_PAR_NO                |
-					US_MR_CHMODE_NORMAL         |
-					US_MR_CLKO                  |
-					US_SPI_CPOL_1               |
-					US_SPI_CPHA_0,
-					SPI_FREQ,
-					BOARD_MCK);
-
-	// Enable receiver and transmitter
-	USART0->US_CR = US_CR_TXEN;
-	USART0->US_CR = US_CR_RXEN;
-
-	Pin pins_config[] = {PINS_CONFIG};
-	pins_config[PWR_SDO].type = PIO_PERIPH_A;				//MOSI
-	pins_config[PWR_SDI].type = PIO_PERIPH_A;				//MISO
-	pins_config[PWR_SCK].type = PIO_PERIPH_B;				//Clock
-	PIO_Configure(pins_config, PIO_LISTSIZE(pins_config));
-	printf("SPI Init\n\r");
-
-	// read a register
-	//const uint8_t returnValue = spi_read_register_mask(0x00, 0x3F);
-	//printf("Inhalt: %d\n\r",returnValue);
-
-	//spi_write_register(0x00, 1);
-	while(true){
-	stepper_select();
-	uint8_t returnValue6 = spi_transceive_byte(0x2D);
-	uint8_t returnValue7 = spi_transceive_byte(0x00);
-	uint8_t returnValue8 = spi_transceive_byte(0);
-	uint8_t returnValue9 = spi_transceive_byte(0);
-	uint8_t returnValue10 = spi_transceive_byte(0);
-	stepper_deselect();
-	stepper_select();
-	uint8_t returnValue1 = spi_transceive_byte(0);
-	uint8_t returnValue2 = spi_transceive_byte(0);
-	uint8_t returnValue3 = spi_transceive_byte(0);
-	uint8_t returnValue4 = spi_transceive_byte(0);
-	uint8_t returnValue5 = spi_transceive_byte(0);
-	stepper_deselect();
-	printf("Inhalt: %d\n\r",returnValue6);
-	printf("Inhalt: %d\n\r",returnValue7);
-	printf("Inhalt: %d\n\r",returnValue8);
-	printf("Inhalt: %d\n\r",returnValue9);
-	printf("Inhalt: %d\n\r",returnValue10);
-	printf("---\n\r");
-	printf("Inhalt: %d\n\r",returnValue1);
-	printf("Inhalt: %d\n\r",returnValue2);
-	printf("Inhalt: %d\n\r",returnValue3);
-	printf("Inhalt: %d\n\r",returnValue4);
-	printf("Inhalt: %d\n\r",returnValue5);
-	SLEEP_MS(50);
-	}
-}
 
 void stepper_init(void) {
-	stepper_reset();
-
-			Pin stepper_power_management_pins[] = {VOLTAGE_STACK_PIN,
+	Pin stepper_power_management_pins[] = {VOLTAGE_STACK_PIN,
 	                                       VOLTAGE_EXTERN_PIN,
 	                                       VOLTAGE_STACK_SWITCH_PIN,
 	                                       STEPPER_CURRENT_PIN};
-	PIO_Configure(stepper_power_management_pins,
-	              PIO_LISTSIZE(stepper_power_management_pins));
-		adc_channel_enable(VOLTAGE_EXTERN_CHANNEL);
+	PIO_Configure(stepper_power_management_pins, PIO_LISTSIZE(stepper_power_management_pins));
+
+	adc_channel_enable(VOLTAGE_EXTERN_CHANNEL);
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
 	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
 
-	stepper_IO_active(false);
-}
-
-void stepper_reset(void) {
-    return;
-    // Do driver reset (disable power)
-	pin_3v3.type = PIO_OUTPUT_0;
-	PIO_Configure(&pin_3v3, 1);
-    
-    /*// Set all control pins to output0 to disable powering via input
-    // protection diodes
-    Pin pins_stepper_tmp[] = {PINS_STEPPER};
-    for(int i=0; i < PIO_LISTSIZE(pins_stepper_tmp); i++) {
-        pins_stepper_tmp[i].type = PIO_OUTPUT_0;
-        PIO_Configure(&pins_stepper_tmp[i], 1);
-    }*/
-       
+	tcm2130_set_active(false);
 	SLEEP_MS(40);
-
-    // Restore power to driver
-	pin_3v3.type = PIO_OUTPUT_1;
-	PIO_Configure(&pin_3v3, 1);
 }
 
-void stepper_IO_active(const bool ioStatus)
-{
-	if (ioStatus) {
-		// Initialize and enable DACC to set VREF and DECAY pins
-		DACC_Initialize(DACC,
-					ID_DACC,
-					0, // Hardware triggers are disabled
-					0, // External trigger
-					0, // Half-Word Transfer
-					0, // Normal Mode (not sleep mode)
-					BOARD_MCK,
-					1, // refresh period
-					0, // Channel 0 selection
-					1, // Tag Selection Mode enabled
-					16); //  value of the start up time
-		DACC_EnableChannel(DACC, VREF_CHANNEL);
-
-		// Enable peripheral clock for TC
-		PMC->PMC_PCER0 = 1 << ID_TC0;
-
-		// Configure and enable TC interrupts
-		NVIC_DisableIRQ(TC0_IRQn);
-		NVIC_ClearPendingIRQ(TC0_IRQn);
-		NVIC_SetPriority(TC0_IRQn, PRIORITY_STEPPER_TC0);
-		NVIC_EnableIRQ(TC0_IRQn);
-
-		tc_channel_init(&STEPPER_TC_CHANNEL,
-					TC_CMR_TCCLKS_TIMER_CLOCK5 | TC_CMR_CPCTRG);
-
-		// Interrupt in compare
-		tc_channel_interrupt_set(&STEPPER_TC_CHANNEL, TC_IER_CPCS);
-
-		PMC->PMC_PCER0 = 1 << ID_TC1;
-		tc_channel_init(&SINGLE_SHOT_TC_CHANNEL,
-					TC_CMR_WAVE |
-					TC_CMR_TCCLKS_TIMER_CLOCK4 |
-					TC_CMR_EEVT_XC0 |
-					TC_CMR_ASWTRG_SET |
-					TC_CMR_ACPC_CLEAR |
-					TC_CMR_WAVSEL_UP |
-					TC_CMR_CPCDIS |
-					TC_CMR_CPCSTOP);
-
-		SINGLE_SHOT_COUNTER = 1;
-		tc_channel_start(&SINGLE_SHOT_TC_CHANNEL);
-
-		pins_active[PWR_ENABLE].type = PIO_OUTPUT_0;
-		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;//
-		pins_active[PWR_STEP].type = PIO_PERIPH_B;
-		pins_active[PWR_STEP].attribute = PIO_DEFAULT;//
-		pins_active[PWR_DIRECTION].type = PIO_OUTPUT_0;
-		pins_active[PWR_DIRECTION].attribute = PIO_DEFAULT;//
-		pins_active[PWR_VREF].type = PIO_INPUT;
-		pins_active[PWR_VREF].attribute = PIO_DEFAULT;//
-
-		pins_active[PWR_CLK].type = PIO_OUTPUT_0;
-		pins_active[PWR_CLK].attribute = PIO_DEFAULT;//
-		pins_active[PWR_SW_3V3].type = PIO_OUTPUT_1;
-		pins_active[PWR_SW_3V3].attribute = PIO_DEFAULT;//
-
-		pins_active[PWR_SDO].type = PIO_OUTPUT_0;
-		pins_active[PWR_SDO].attribute = PIO_DEFAULT;//
-		pins_active[PWR_SDI].type = PIO_INPUT;
-		pins_active[PWR_SDI].attribute = PIO_DEFAULT;//
-		pins_active[PWR_SCK].type = PIO_OUTPUT_1;
-		pins_active[PWR_CS].type = PIO_OUTPUT_1;
-		pins_active[CFG_4].type = PIO_OUTPUT_0;
-		pins_active[CFG_5].type = PIO_OUTPUT_0;
-		pins_active[CFG_DIAG0].type = PIO_INPUT;
-		pins_active[CFG_DIAG0].attribute = PIO_PULLUP;//
-		pins_active[CFG_DIAG1].type = PIO_INPUT;
-		pins_active[CFG_DIAG1].attribute = PIO_PULLUP;//
-
-		PIO_Configure(pins_active, PIO_LISTSIZE(pins_active));
-		printf("ioStatus: true\n\r");
-
-		stepper_set_output_current(VREF_DEFAULT_CURRENT);
-		stepper_set_step_mode(stepper_step_mode);
-		stepper_set_configuration(stepper_standstill_power_down, stepper_chopper_off_time, stepper_chopper_hysteresis, stepper_chopper_blank_time);
-
-		SPI_init();
-	}
-	else {
-		pins_active[PWR_ENABLE].type =  PIO_INPUT;
-		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;//
-		pins_active[PWR_STEP].type = PIO_INPUT;
-		pins_active[PWR_STEP].attribute = PIO_DEFAULT;//
-		pins_active[PWR_DIRECTION].type = PIO_INPUT;
-		pins_active[PWR_DIRECTION].attribute = PIO_DEFAULT;//
-		pins_active[PWR_VREF].type = PIO_INPUT;
-		pins_active[PWR_VREF].attribute = PIO_DEFAULT;///
-
-		pins_active[PWR_CLK].type = PIO_INPUT;
-		pins_active[PWR_CLK].attribute = PIO_DEFAULT;//
-		pins_active[PWR_SW_3V3].type = PIO_INPUT;
-		pins_active[PWR_SW_3V3].attribute = PIO_DEFAULT;//
-
-		pins_active[PWR_SDO].type = PIO_INPUT;
-		pins_active[PWR_SDO].attribute = PIO_DEFAULT;//
-		pins_active[PWR_SDI].type = PIO_INPUT;
-		pins_active[PWR_SDI].attribute = PIO_DEFAULT;///
-		pins_active[PWR_SCK].type = PIO_INPUT;
-		pins_active[PWR_SCK].attribute = PIO_DEFAULT;//
-		pins_active[PWR_CS].type = PIO_INPUT;
-		pins_active[PWR_CS].attribute = PIO_DEFAULT;//
-		pins_active[CFG_4].type = PIO_INPUT;
-		pins_active[CFG_4].attribute = PIO_DEFAULT;//
-		pins_active[CFG_5].type = PIO_INPUT;
-		pins_active[CFG_5].attribute = PIO_DEFAULT;//
-		pins_active[CFG_DIAG0].type = PIO_INPUT;
-		pins_active[CFG_DIAG0].attribute = PIO_DEFAULT;///
-		pins_active[CFG_DIAG1].type = PIO_INPUT;
-		pins_active[CFG_DIAG1].attribute = PIO_DEFAULT;///
-		PIO_Configure(pins_active, PIO_LISTSIZE(pins_active));
-		printf("ioStatus: false\n\r");
-	}
-}
 
 void stepper_set_next_timer(const uint32_t velocity) {
 	uint32_t velocity_use = velocity;
@@ -648,7 +398,13 @@ bool stepper_is_currently_running(void) {
 }
 
 void stepper_make_step(void) {
-	tc_channel_start(&SINGLE_SHOT_TC_CHANNEL);
+	// We change step pin back and force for one step each (dedge = 1)
+	if(pin_step.pio->PIO_ODSR & pin_step.mask) {
+		pin_step.pio->PIO_CODR = pin_step.mask;
+	} else {
+		pin_step.pio->PIO_SODR = pin_step.mask;
+	}
+
 	stepper_position += stepper_direction;
 }
 
@@ -838,7 +594,7 @@ void stepper_drive_speedramp(void) {
 }
 
 void TC0_IrqHandler(void) {
-	// acknowledge interrupt
+	// Acknowledge interrupt
 	tc_channel_interrupt_ack(&STEPPER_TC_CHANNEL);
 
 	stepper_time_base_counter--;
@@ -927,64 +683,47 @@ void stepper_set_output_current(const uint16_t current) {
 	stepper_output_current = new_current;
 }
 
-void stepper_apply_configuration(void) {
-	//PIO_Configure(stepper_config, PIO_LISTSIZE(stepper_config));
-}
-
 void stepper_set_step_mode(const uint8_t mode) {
-	/*stepper_step_mode = mode;
+	stepper_step_mode = mode;
+	
 	switch(mode) {
 		case STEP_MODE_NORMAL_FULL:
-			stepper_config[CFG_1].type = PIO_OUTPUT_0;
-			stepper_config[CFG_2].type = PIO_OUTPUT_0;
+//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1111 << 24));
 			break;
 
 		case STEP_MODE_NORMAL_HALF:
-			stepper_config[CFG_1].type = PIO_OUTPUT_1;
-			stepper_config[CFG_2].type = PIO_OUTPUT_0;
+//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1110 << 24));
 			break;
 
 		case STEP_MODE_NORMAL_HALF_INTERPOLATE:
-			stepper_config[CFG_1].type = PIO_INPUT;
-			stepper_config[CFG_2].type = PIO_OUTPUT_0;
 			break;
 
 		case STEP_MODE_NORMAL_QUARTER:
-			stepper_config[CFG_1].type = PIO_OUTPUT_0;
-			stepper_config[CFG_2].type = PIO_OUTPUT_1;
+//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1101 << 24));
 			break;
 
 		case STEP_MODE_NORMAL_SIXTEENTH:
-			stepper_config[CFG_1].type = PIO_OUTPUT_1;
-			stepper_config[CFG_2].type = PIO_OUTPUT_1;
+//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1011 << 24));
 			break;
 
 		case STEP_MODE_NORMAL_QUARTER_INTERPOLATE:
-			stepper_config[CFG_1].type = PIO_INPUT;
-			stepper_config[CFG_2].type = PIO_OUTPUT_1;
 			break;
 
 		case STEP_MODE_NORMAL_SIXTEENTH_INTERPOLATE:
-			stepper_config[CFG_1].type = PIO_OUTPUT_0;
-			stepper_config[CFG_2].type = PIO_INPUT;
 			break;
 
 		case STEP_MODE_SILENT_QUARTER_INTERPOLATE:
-			stepper_config[CFG_1].type = PIO_OUTPUT_1;
-			stepper_config[CFG_2].type = PIO_INPUT;
 			break;
 
 		case STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE:
-			stepper_config[CFG_1].type = PIO_INPUT;
-			stepper_config[CFG_2].type = PIO_INPUT;
+//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b0000 << 24));
 			break;
 
 		default:
 			break;
 			// TODO: error?
 	}
-
-	stepper_apply_configuration();*/
+	
 }
 
 void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time) {
