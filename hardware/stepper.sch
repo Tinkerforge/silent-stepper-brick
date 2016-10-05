@@ -59,8 +59,6 @@ Wire Wire Line
 Wire Wire Line
 	1700 3000 2750 3000
 Wire Wire Line
-	1700 3400 3550 3400
-Wire Wire Line
 	1500 6000 2650 6000
 Wire Wire Line
 	1500 4500 2650 4500
@@ -747,7 +745,7 @@ Text GLabel 2750 3800 2    60   Input ~ 0
 PWR-DIAG0
 Text GLabel 2650 6000 2    60   Output ~ 0
 STACK-INT
-Text GLabel 4100 3400 2    60   Output ~ 0
+Text GLabel 4050 2400 2    60   Output ~ 0
 PWR-CLK
 Text GLabel 2750 900  2    60   Input ~ 0
 PWR-SCK
@@ -774,8 +772,6 @@ Wire Wire Line
 	2750 1500 1700 1500
 Wire Wire Line
 	2750 3600 1700 3600
-Text Notes 3500 1550 0    60   ~ 0
-changed
 Text GLabel 2750 1400 2    60   Output ~ 0
 PWR-CS
 Wire Wire Line
@@ -783,17 +779,18 @@ Wire Wire Line
 $Comp
 L R R105
 U 1 1 57F37DB8
-P 3800 3400
-F 0 "R105" V 3700 3400 50  0000 C CNN
-F 1 "1k" V 3800 3400 50  0000 C CNN
-F 2 "kicad-libraries:0402E" H 3800 3400 60  0001 C CNN
-F 3 "" H 3800 3400 60  0001 C CNN
-	1    3800 3400
+P 3750 2400
+F 0 "R105" V 3650 2400 50  0000 C CNN
+F 1 "1k" V 3750 2400 50  0000 C CNN
+F 2 "kicad-libraries:0402E" H 3750 2400 60  0001 C CNN
+F 3 "" H 3750 2400 60  0001 C CNN
+	1    3750 2400
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	4100 3400 4050 3400
-NoConn ~ 1700 2400
+	4050 2400 4000 2400
 NoConn ~ 1700 3100
-NoConn ~ 3950 2650
+Wire Wire Line
+	3500 2400 1700 2400
+NoConn ~ 1700 3400
 $EndSCHEMATC
