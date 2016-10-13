@@ -148,7 +148,9 @@
 #define PRIORITY_EEPROM_SLAVE_TWI1   1
 #define PRIORITY_STACK_SLAVE_SPI     5
 #define PRIORITY_PROFILING_TC0       0
+#define PRIORITY_USART_DMA           0
 #define PRIORITY_STEPPER_TC0         6
+#define PRIORITY_STEPPER_TC2         6
 
 // ************** BRICKLET SETTINGS **************
 
@@ -198,41 +200,42 @@
 #define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
 #define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
 
-#define PIN_CLK         {1 << 27, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //use internal clock
-#define PIN_PWR_SW_3V3  {1 << 8,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //enable 3V3
+//#define PIN_CLK         {1 << 27, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} // use external clock (TC)
+#define PIN_CLK         {1 << 17, PIOA, ID_PIOA, PIO_PERIPH_C, PIO_DEFAULT} // use external clock (PWM)
+#define PIN_PWR_SW_3V3  {1 << 8,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // enable 3V3
 
-#define PIN_PWR_SDO     {1 << 5,  PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // SDO_CFG0 chopper off time default
-#define PIN_PWR_SDI     {1 << 6,  PIOA, ID_PIOA, PIO_INPUT,    PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
-#define PIN_PWR_SCK     {1 << 2,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
-#define PIN_PWR_CS      {1 << 7,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
-#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
-#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
+#define PIN_PWR_SDO     {1 << 5,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} // SDO_CFG0 chopper off time default
+#define PIN_PWR_SDI     {1 << 6,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
+#define PIN_PWR_SCK     {1 << 2,  PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
+#define PIN_PWR_CS      {1 << 7,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
+//#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
+//#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
 #define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP}  // DIAG1, Index
 #define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP}  // DIAG0, Error
 
-#define PINS_CONFIG     PIN_PWR_SDO, PIN_PWR_SDI, PIN_PWR_SCK, PIN_PWR_CS, PIN_CFG4, \
-                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_PWR_SW_3V3
+#define PINS_CONFIG     PIN_PWR_SDO, PIN_PWR_SDI, PIN_PWR_SCK, PIN_PWR_CS, \
+                        PIN_DIAG1, PIN_DIAG0, PIN_PWR_SW_3V3
 
-#define PINS_ACTIVE     PIN_PWR_SDO, PIN_PWR_SDI, PIN_PWR_SCK, PIN_PWR_CS, PIN_CFG4, \
-                        PIN_CFG5, PIN_DIAG1, PIN_DIAG0, PIN_PWR_SW_3V3, PIN_CLK, PIN_ENABLE, \
+#define PINS_ACTIVE     PIN_PWR_SDO, PIN_PWR_SDI, PIN_PWR_SCK, PIN_PWR_CS, \
+                        PIN_DIAG1, PIN_DIAG0, PIN_PWR_SW_3V3, PIN_CLK, PIN_ENABLE, \
                         PIN_STEP, PIN_DIRECTION, PIN_VREF
 
 #define PWR_SDO        0 // SPI Data Output
 #define PWR_SDI        1 // SPI Data Input
 #define PWR_SCK        2 // SPI serial clock input
 #define PWR_CS         3 // SPI chip select input (negative active)
-#define CFG_4          4 // dcStep enable input (SPI_MODE=1) - tie to GND for normal operation (no dcStep)
-#define CFG_5          5 // dcStep gating input for axis synchronization (SPI_MODE=1)
-#define CFG_DIAG1      6 // Diagnostic Outputs
-#define CFG_DIAG0      7 //     "        "
-#define PWR_SW_3V3     8 // *
-#define PWR_CLK        9 // *
-#define PWR_ENABLE    10 // *
-#define PWR_STEP      11 // * ToDo
-#define PWR_DIRECTION 12 // *
-#define PWR_VREF      13 // *
+//#define CFG_4          4 // dcStep enable input (SPI_MODE=1) - tie to GND for normal operation (no dcStep)
+//#define CFG_5          5 // dcStep gating input for axis synchronization (SPI_MODE=1)
+#define CFG_DIAG1      4 // Diagnostic Outputs
+#define CFG_DIAG0      5 //     "        "
+#define PWR_SW_3V3     6 // *
+#define PWR_CLK        7 // *
+#define PWR_ENABLE     8 // *
+#define PWR_STEP       9 // * ToDo
+#define PWR_DIRECTION 10 // *
+#define PWR_VREF      11 // *
 
-#define CFG_DCO        14 // dcStep ready output
+//#define CFG_DCO        14 // dcStep ready output
 //ToDo: dcStep DCO Pin for load dependet speed control -> Page 3 (datasheet)
 //#define CFG_SPI_MODE   15 // SPI mode selector =1 when activated
 

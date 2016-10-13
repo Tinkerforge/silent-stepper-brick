@@ -41,8 +41,8 @@
 #define FID_SET_STEPS 11
 #define FID_GET_STEPS 12
 #define FID_GET_REMAINING_STEPS 13
-#define FID_SET_STEP_MODE 14
-#define FID_GET_STEP_MODE 15
+#define FID_SET_STEP_CONFIGURATION 14
+#define FID_GET_STEP_CONFIGURATION 15
 #define FID_DRIVE_FORWARD 16
 #define FID_DRIVE_BACKWARD 17
 #define FID_STOP 18
@@ -54,19 +54,27 @@
 #define FID_ENABLE 24
 #define FID_DISABLE 25
 #define FID_IS_ENABLED 26
-#define FID_SET_CONFIGURATION 28
-#define FID_GET_CONFIGURATION 29
-#define FID_SET_MINIMUM_VOLTAGE 30
-#define FID_GET_MINIMUM_VOLTAGE 31
-#define FID_UNDER_VOLTAGE 32
-#define FID_POSITION_REACHED 33
-#define FID_SET_TIME_BASE 34
-#define FID_GET_TIME_BASE 35
-#define FID_GET_ALL_DATA 36
-#define FID_SET_ALL_DATA_PERIOD 37
-#define FID_GET_ALL_DATA_PERIOD 38
-#define FID_ALL_DATA 39
-#define FID_NEW_STATE 40
+#define FID_SET_BASIC_CONFIGURATION 27
+#define FID_GET_BASIC_CONFIGURATION 28
+#define FID_SET_SPREADCYCLE_CONFIGURATION 29
+#define FID_GET_SPREADCYCLE_CONFIGURATION 30
+#define FID_SET_STEALTH_CONFIGURATION 31
+#define FID_GET_STEALTH_CONFIGURATION 32
+#define FID_SET_COOLSTEP_CONFIGURATION 33
+#define FID_GET_COOLSTEP_CONFIGURATION 34
+#define FID_SET_MISC_CONFIGURATION 35
+#define FID_GET_MISC_CONFIGURATION 36
+#define FID_SET_MINIMUM_VOLTAGE 37
+#define FID_GET_MINIMUM_VOLTAGE 38
+#define FID_UNDER_VOLTAGE 39
+#define FID_POSITION_REACHED 40
+#define FID_SET_TIME_BASE 41
+#define FID_GET_TIME_BASE 42
+#define FID_GET_ALL_DATA 43
+#define FID_SET_ALL_DATA_PERIOD 44
+#define FID_GET_ALL_DATA_PERIOD 45
+#define FID_ALL_DATA 46
+#define FID_NEW_STATE 47
 
 #define COM_MESSAGES_USER \
 	{FID_SET_MAX_VELOCITY, (message_handler_func_t)set_max_velocity}, \
@@ -82,8 +90,8 @@
 	{FID_SET_STEPS, (message_handler_func_t)set_steps}, \
 	{FID_GET_STEPS, (message_handler_func_t)get_steps}, \
 	{FID_GET_REMAINING_STEPS, (message_handler_func_t)get_remaining_steps}, \
-	{FID_SET_STEP_MODE, (message_handler_func_t)set_step_mode}, \
-	{FID_GET_STEP_MODE, (message_handler_func_t)get_step_mode}, \
+	{FID_SET_STEP_CONFIGURATION, (message_handler_func_t)set_step_configuration}, \
+	{FID_GET_STEP_CONFIGURATION, (message_handler_func_t)get_step_configuration}, \
 	{FID_DRIVE_FORWARD, (message_handler_func_t)drive_forward}, \
 	{FID_DRIVE_BACKWARD, (message_handler_func_t)drive_backward}, \
 	{FID_STOP, (message_handler_func_t)stop}, \
@@ -95,8 +103,16 @@
 	{FID_ENABLE, (message_handler_func_t)enable}, \
 	{FID_DISABLE, (message_handler_func_t)disable}, \
 	{FID_IS_ENABLED, (message_handler_func_t)is_enabled}, \
-	{FID_SET_CONFIGURATION, (message_handler_func_t)set_configuration}, \
-	{FID_GET_CONFIGURATION, (message_handler_func_t)get_configuration}, \
+	{FID_SET_BASIC_CONFIGURATION, (message_handler_func_t)set_basic_configuration}, \
+	{FID_GET_BASIC_CONFIGURATION, (message_handler_func_t)get_basic_configuration}, \
+	{FID_SET_SPREADCYCLE_CONFIGURATION, (message_handler_func_t)set_spreadcycle_configuration}, \
+	{FID_GET_SPREADCYCLE_CONFIGURATION, (message_handler_func_t)get_spreadcycle_configuration}, \
+	{FID_SET_STEALTH_CONFIGURATION, (message_handler_func_t)set_stealth_configuration}, \
+	{FID_GET_STEALTH_CONFIGURATION, (message_handler_func_t)get_stealth_configuration}, \
+	{FID_SET_COOLSTEP_CONFIGURATION, (message_handler_func_t)set_coolstep_configuration}, \
+	{FID_GET_COOLSTEP_CONFIGURATION, (message_handler_func_t)get_coolstep_configuration}, \
+	{FID_SET_MISC_CONFIGURATION, (message_handler_func_t)set_misc_configuration}, \
+	{FID_GET_MISC_CONFIGURATION, (message_handler_func_t)get_misc_configuration}, \
 	{FID_SET_MINIMUM_VOLTAGE, (message_handler_func_t)set_minimum_voltage}, \
 	{FID_GET_MINIMUM_VOLTAGE, (message_handler_func_t)get_minimum_voltage}, \
 	{FID_UNDER_VOLTAGE, (message_handler_func_t)NULL}, \
@@ -206,17 +222,19 @@ typedef struct {
 
 typedef struct {
 	MessageHeader header;
-	uint8_t mode;
-} __attribute__((__packed__)) SetStepMode;
+	uint8_t step_resolution;
+	bool interpolation;
+} __attribute__((__packed__)) SetStepConfiguration;
 
 typedef struct {
 	MessageHeader header;
-} __attribute__((__packed__)) GetStepMode;
+} __attribute__((__packed__)) GetStepConfiguration;
 
 typedef struct {
 	MessageHeader header;
-	uint8_t mode;
-} __attribute__((__packed__)) GetStepModeReturn;
+	uint8_t step_resolution;
+	bool interpolation;
+} __attribute__((__packed__)) GetStepConfigurationReturn;
 
 typedef struct {
 	MessageHeader header;
@@ -290,23 +308,127 @@ typedef struct {
 
 typedef struct {
 	MessageHeader header;
-	uint8_t standstill_power_down;
-	uint8_t chopper_off_time;
-	uint8_t chopper_hysteresis;
-	uint8_t chopper_blank_time;
-} __attribute__((__packed__)) SetConfiguration;
+	uint8_t standstill_current;
+	uint8_t motor_run_current;
+	uint8_t standstill_delay_time;
+	uint8_t power_down_time;
+	uint16_t stealth_threshold;
+	uint16_t coolstep_threshold;
+	uint16_t classic_threshold;
+	bool high_velocity_chopper_mode;
+} __attribute__((__packed__)) SetBasicConfiguration;
 
 typedef struct {
 	MessageHeader header;
-} __attribute__((__packed__)) GetConfiguration;
+} __attribute__((__packed__)) GetBasicConfiguration;
 
 typedef struct {
 	MessageHeader header;
-	uint8_t standstill_power_down;
-	uint8_t chopper_off_time;
-	uint8_t chopper_hysteresis;
-	uint8_t chopper_blank_time;
-} __attribute__((__packed__)) GetConfigurationReturn;
+	uint8_t standstill_current;
+	uint8_t motor_run_current;
+	uint8_t standstill_delay_time;
+	uint8_t power_down_time;
+	uint16_t stealth_threshold;
+	uint16_t coolstep_threshold;
+	uint16_t classic_threshold;
+	bool high_velocity_chopper_mode;
+} __attribute__((__packed__)) GetBasicConfigurationReturn;
+
+typedef struct {
+	MessageHeader header;
+	uint8_t slow_decay_duration;
+	bool enable_random_slow_decay;
+	uint8_t fast_decay_duration;
+	uint8_t hysteresis_start_value;
+	int8_t hysteresis_end_value;
+	int8_t sinewave_offset;
+	uint8_t chopper_mode;
+	uint8_t comperator_blank_time;
+	bool fast_decay_without_comperator;
+} __attribute__((__packed__)) SetSpreadcycleConfiguration;
+
+typedef struct {
+	MessageHeader header;
+} __attribute__((__packed__)) GetSpreadcycleConfiguration;
+
+typedef struct {
+	MessageHeader header;
+	uint8_t slow_decay_duration;
+	bool enable_random_slow_decay;
+	uint8_t fast_decay_duration;
+	uint8_t hysteresis_start_value;
+	int8_t hysteresis_end_value;
+	int8_t sinewave_offset;
+	uint8_t chopper_mode;
+	uint8_t comperator_blank_time;
+	bool fast_decay_without_comperator;
+} __attribute__((__packed__)) GetSpreadcycleConfigurationReturn;
+
+typedef struct {
+	MessageHeader header;
+	bool enable_stealth;
+	uint8_t amplitude;
+	uint8_t gradiant;
+	bool enable_autoscale;
+	bool force_symmetric;
+	uint8_t freewheel_mode;
+} __attribute__((__packed__)) SetStealthConfiguration;
+
+typedef struct {
+	MessageHeader header;
+} __attribute__((__packed__)) GetStealthConfiguration;
+
+typedef struct {
+	MessageHeader header;
+	bool enable_stealth;
+	uint8_t amplitude;
+	uint8_t gradiant;
+	bool enable_autoscale;
+	bool force_symmetric;
+	uint8_t freewheel_mode;
+} __attribute__((__packed__)) GetStealthConfigurationReturn;
+
+typedef struct {
+	MessageHeader header;
+	uint8_t minimum_stallguard_value;
+	uint8_t maximum_stallguard_value;
+	uint8_t current_up_step_width;
+	uint8_t current_down_step_width;
+	uint8_t minimum_current;
+	int8_t stallguard_threshold_value;
+	uint8_t stallguard_mode;
+} __attribute__((__packed__)) SetCoolstepConfiguration;
+
+typedef struct {
+	MessageHeader header;
+} __attribute__((__packed__)) GetCoolstepConfiguration;
+
+typedef struct {
+	MessageHeader header;
+	uint8_t minimum_stallguard_value;
+	uint8_t maximum_stallguard_value;
+	uint8_t current_up_step_width;
+	uint8_t current_down_step_width;
+	uint8_t minimum_current;
+	int8_t stallguard_threshold_value;
+	uint8_t stallguard_mode;
+} __attribute__((__packed__)) GetCoolstepConfigurationReturn;
+
+typedef struct {
+	MessageHeader header;
+	bool disable_short_to_ground_protection;
+	uint8_t synchronize_phase_frequency;
+} __attribute__((__packed__)) SetMiscConfiguration;
+
+typedef struct {
+	MessageHeader header;
+} __attribute__((__packed__)) GetMiscConfiguration;
+
+typedef struct {
+	MessageHeader header;
+	bool disable_short_to_ground_protection;
+	uint8_t synchronize_phase_frequency;
+} __attribute__((__packed__)) GetMiscConfigurationReturn;
 
 typedef struct {
 	MessageHeader header;
@@ -408,8 +530,8 @@ void get_target_position(const ComType com, const GetTargetPosition *data);
 void set_steps(const ComType com, const SetSteps *data);
 void get_steps(const ComType com, const GetSteps *data);
 void get_remaining_steps(const ComType com, const GetRemainingSteps *data);
-void set_step_mode(const ComType com, const SetStepMode *data);
-void get_step_mode(const ComType com, const GetStepMode *data);
+void set_step_configuration(const ComType com, const SetStepConfiguration *data);
+void get_step_configuration(const ComType com, const GetStepConfiguration *data);
 void drive_forward(const ComType com, const DriveForward *data);
 void drive_backward(const ComType com, const DriveBackward *data);
 void stop(const ComType com, const Stop *data);
@@ -418,8 +540,16 @@ void get_external_input_voltage(const ComType com, const GetExternalInputVoltage
 void get_current_consumption(const ComType com, const GetCurrentConsumption *data);
 void set_motor_current(const ComType com, const SetMotorCurrent *data);
 void get_motor_current(const ComType com, const GetMotorCurrent *data);
-void set_configuration(const ComType com, const SetConfiguration *data);
-void get_configuration(const ComType com, const GetConfiguration *data);
+void set_basic_configuration(const ComType com, const SetBasicConfiguration *data);
+void get_basic_configuration(const ComType com, const GetBasicConfiguration *data);
+void set_spreadcycle_configuration(const ComType com, const SetSpreadcycleConfiguration *data);
+void get_spreadcycle_configuration(const ComType com, const GetSpreadcycleConfiguration *data);
+void set_stealth_configuration(const ComType com, const SetStealthConfiguration *data);
+void get_stealth_configuration(const ComType com, const GetStealthConfiguration *data);
+void set_coolstep_configuration(const ComType com, const SetCoolstepConfiguration *data);
+void get_coolstep_configuration(const ComType com, const GetCoolstepConfiguration *data);
+void set_misc_configuration(const ComType com, const SetMiscConfiguration *data);
+void get_misc_configuration(const ComType com, const GetMiscConfiguration *data);
 void enable(const ComType com, const Enable *data);
 void disable(const ComType com, const Disable *data);
 void is_enabled(const ComType com, const IsEnabled *data);

@@ -90,12 +90,6 @@ uint32_t stepper_current = 0;
 uint8_t stepper_api_state = STEPPER_API_STATE_STOP;
 uint8_t stepper_api_prev_state = STEPPER_API_STATE_STOP;
 bool stepper_api_state_send = false;
-uint8_t stepper_step_mode = STEP_MODE_SILENT_QUARTER_INTERPOLATE;
-
-uint8_t stepper_standstill_power_down = STEPPER_STANDSTILL_POWER_DOWN_ON;
-uint8_t stepper_chopper_off_time      = STEPPER_CHOPPER_OFF_TIME_LOW;
-uint8_t stepper_chopper_hysteresis    = STEPPER_CHOPPER_HYSTERESIS_LOW;
-uint8_t stepper_chopper_blank_time    = STEPPER_CHOPPER_BLANK_TIME_LOW;
 
 bool silent_mode_switched = false;
 
@@ -254,15 +248,17 @@ void stepper_make_step_speedramp(const int32_t steps) {
 }
 
 void tick_task(const uint8_t tick_type) {
-	//printf("tick_task()\n\r");
 	static int8_t message_counter = 0;
 
 	if(tick_type == TICK_TASK_TYPE_CALCULATION) {
+		tcm2130_handle_register_write();
+
 		stepper_tick_calc_counter++;
 		stepper_current_sum += adc_channel_get_data(STEPPER_CURRENT_CHANNEL);
 		if(stepper_tick_calc_counter % 100 == 0) {
-			uint32_t value = tcm2130_read_register(TMC2130_REG_TSTEP);
-			printf("tstep: %d\n\r", value);
+//			printf("before tstep\n\r");
+//			uint32_t value = tcm2130_read_register(TMC2130_REG_TSTEP);
+//			printf("tstep: %d\n\r", value);
 			stepper_current = stepper_current_sum/100;
 			stepper_current_sum = 0;
 		}
@@ -278,7 +274,7 @@ void tick_task(const uint8_t tick_type) {
 		if((stepper_get_external_voltage() > STEPPER_VOLTAGE_EPSILON) || (stepper_get_stack_voltage() > STEPPER_VOLTAGE_EPSILON)) {
 			tcm2130_set_active(true);
 		} else {
-			tcm2130_set_active(false);
+			tcm2130_set_active(true); // TODO: FIXME: Set to false
 		}
 
 		stepper_all_data_period_counter++;
@@ -358,7 +354,7 @@ void stepper_init(void) {
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
 	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
 
-	tcm2130_set_active(false);
+	tcm2130_set_active(true); // TODO: FIXME: Set to false here!
 	SLEEP_MS(40);
 }
 
@@ -503,25 +499,6 @@ void stepper_drive_speedramp(void) {
 		goal = 0;
 	}
     
-    if(stepper_velocity > 15000 && !silent_mode_switched) {
-        silent_mode_switched = true;
-        if(stepper_step_mode == STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE) { //batti
-            stepper_set_step_mode(STEP_MODE_NORMAL_SIXTEENTH);
-        }
-        if(stepper_step_mode == STEP_MODE_SILENT_QUARTER_INTERPOLATE) {
-            stepper_set_step_mode(STEP_MODE_NORMAL_QUARTER);
-        }
-    }
-    if(silent_mode_switched && stepper_velocity < 15000) {
-        silent_mode_switched = false;
-        if(stepper_step_mode == STEP_MODE_NORMAL_SIXTEENTH) { //batti
-            stepper_set_step_mode(STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE);
-        }
-        if(stepper_step_mode == STEP_MODE_NORMAL_QUARTER) {
-            stepper_set_step_mode(STEP_MODE_SILENT_QUARTER_INTERPOLATE);
-        }
-    }
-
 	if(goal == stepper_velocity) {
 		if(stepper_speedramp_state == STEPPER_SPEEDRAMP_STATE_STOP) {
 			stepper_running = false;
@@ -641,13 +618,8 @@ void stepper_set_direction(const int8_t direction) {
 void stepper_enable_pin_apply(void) {
 	if(stepper_state == STEPPER_STATE_OFF) {
 		pin_enable.type = PIO_OUTPUT_1;
-	} //else {
-//		if(stepper_standstill_power_down == STEPPER_STANDSTILL_POWER_DOWN_ON) {
-//			pin_enable.type = PIO_INPUT;
-//		} 
-else {
-			pin_enable.type = PIO_OUTPUT_0;
-//		}
+	} else {
+		pin_enable.type = PIO_OUTPUT_0;
 	}
 
 	PIO_Configure(&pin_enable, 1);
@@ -681,100 +653,6 @@ void stepper_set_output_current(const uint16_t current) {
 	                                   VOLTAGE_MAX_VALUE));
 
 	stepper_output_current = new_current;
-}
-
-void stepper_set_step_mode(const uint8_t mode) {
-	stepper_step_mode = mode;
-	
-	switch(mode) {
-		case STEP_MODE_NORMAL_FULL:
-//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1111 << 24));
-			break;
-
-		case STEP_MODE_NORMAL_HALF:
-//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1110 << 24));
-			break;
-
-		case STEP_MODE_NORMAL_HALF_INTERPOLATE:
-			break;
-
-		case STEP_MODE_NORMAL_QUARTER:
-//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1101 << 24));
-			break;
-
-		case STEP_MODE_NORMAL_SIXTEENTH:
-//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b1011 << 24));
-			break;
-
-		case STEP_MODE_NORMAL_QUARTER_INTERPOLATE:
-			break;
-
-		case STEP_MODE_NORMAL_SIXTEENTH_INTERPOLATE:
-			break;
-
-		case STEP_MODE_SILENT_QUARTER_INTERPOLATE:
-			break;
-
-		case STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE:
-//			tcm2130_write_register(0x6C, (0b1111 << 24), (0b0000 << 24));
-			break;
-
-		default:
-			break;
-			// TODO: error?
-	}
-	
-}
-
-void stepper_set_configuration(const uint8_t standstill_power_down, const uint8_t chopper_off_time, const uint8_t chopper_hysteresis, const uint8_t chopper_blank_time) {
-	/*stepper_standstill_power_down = standstill_power_down;
-	stepper_chopper_off_time = chopper_off_time;
-	stepper_chopper_hysteresis = chopper_hysteresis;
-	stepper_chopper_blank_time = chopper_blank_time;
-
-	stepper_enable_pin_apply();
-
-	switch(stepper_chopper_off_time) {
-		case STEPPER_CHOPPER_OFF_TIME_LOW:
-			stepper_config[CFG_0].type = PIO_OUTPUT_0;
-			break;
-		case STEPPER_CHOPPER_OFF_TIME_MEDIUM:
-			stepper_config[CFG_0].type = PIO_OUTPUT_1;
-			break;
-		case STEPPER_CHOPPER_OFF_TIME_HIGH:
-			stepper_config[CFG_0].type = PIO_INPUT;
-			break;
-	}
-
-	switch(stepper_chopper_hysteresis) {
-		case STEPPER_CHOPPER_HYSTERESIS_LOW:
-			stepper_config[CFG_4].type = PIO_OUTPUT_0;
-			break;
-		case STEPPER_CHOPPER_HYSTERESIS_MEDIUM:
-			stepper_config[CFG_4].type = PIO_OUTPUT_1;
-			break;
-		case STEPPER_CHOPPER_HYSTERESIS_HIGH:
-			stepper_config[CFG_4].type = PIO_INPUT;
-			break;
-	}
-
-	switch(stepper_chopper_blank_time) {
-		case STEPPER_CHOPPER_BLANK_TIME_LOW:
-			stepper_config[CFG_5].type = PIO_OUTPUT_0;
-			break;
-		case STEPPER_CHOPPER_BLANK_TIME_MEDIUM:
-			stepper_config[CFG_5].type = PIO_OUTPUT_1;
-			break;
-		case STEPPER_CHOPPER_BLANK_TIME_HIGH:
-			stepper_config[CFG_5].type = PIO_INPUT;
-			break;
-	}
-
-	stepper_apply_configuration();*/
-}
-
-uint8_t stepper_get_step_mode(void) {
-	return stepper_step_mode;
 }
 
 uint16_t stepper_get_external_voltage(void) {

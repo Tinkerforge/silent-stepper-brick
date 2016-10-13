@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define TCP2130_CLOCK_FREQUENCY 12330000 // TODO: Either change me to actual external clock or calculate internal clock
+#define TCP2130_CLOCK_FREQUENCY ((uint32_t)1280000) // 12.8MHz supplied by external clock (PWM with period 5, duty cycle 2 @mck)
 
 // ****************** TCM2130 REGISTERS *****************
 // R is read-only / W is write-only / R+C is clear upon read
@@ -76,6 +76,32 @@
 #define TMC2130_REG_MSLUT_NUM   8
 #define TCM2130_READ            0
 #define TCM2130_WRITE           0x80
+
+#define TMC2130_REG_GCONF_BIT       (1 << 0)
+#define TMC2130_REG_IHOLD_IRUN_BIT  (1 << 1)
+#define TMC2130_REG_TPOWERDOWN_BIT  (1 << 2)
+#define TMC2130_REG_TPWMTHRS_BIT    (1 << 3)
+#define TMC2130_REG_TCOOLTHRS_BIT   (1 << 4)
+#define TMC2130_REG_THIGH_BIT       (1 << 5)
+#define TMC2130_REG_XDIRECT_BIT     (1 << 6)
+#define TMC2130_REG_VDCMIN_BIT      (1 << 7)
+#define TMC2130_REG_MSLUT0_BIT      (1 << 8)
+#define TMC2130_REG_MSLUT1_BIT      (1 << 9)
+#define TMC2130_REG_MSLUT2_BIT      (1 << 10)
+#define TMC2130_REG_MSLUT3_BIT      (1 << 11)
+#define TMC2130_REG_MSLUT4_BIT      (1 << 12)
+#define TMC2130_REG_MSLUT5_BIT      (1 << 13)
+#define TMC2130_REG_MSLUT6_BIT      (1 << 14)
+#define TMC2130_REG_MSLUT7_BIT      (1 << 15)
+#define TMC2130_REG_MSLUTSEL_BIT    (1 << 16)
+#define TMC2130_REG_MSLUTSTART_BIT  (1 << 17)
+#define TMC2130_REG_CHOPCONF_BIT    (1 << 18)
+#define TMC2130_REG_COOLCONF_BIT    (1 << 19)
+#define TMC2130_REG_DCCTRL_BIT      (1 << 20)
+#define TMC2130_REG_PWMCONF_BIT     (1 << 21)
+#define TMC2130_REG_ENCM_CTRL_BIT   (1 << 22)
+
+#define TMC2130_NUM_REGS_TO_WRITE   23
 
 typedef union {
   struct {
@@ -342,6 +368,7 @@ uint8_t tcm2130_spi_transceive_byte(const uint8_t value);
 void tcm2130_write_register(const uint8_t address, const uint32_t value);
 uint32_t tcm2130_read_register(const uint8_t address);
 void tcm2130_set_active(const bool active);
+void tcm2130_handle_register_write(void);
 void tcm2130_print_current_state(void);
 
 #endif

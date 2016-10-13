@@ -31,6 +31,7 @@
 #include "bricklib/drivers/usart/usart.h"
 #include "bricklib/drivers/dacc/dacc.h"
 #include "bricklib/drivers/tc/tc.h"
+#include "bricklib/drivers/pwmc/pwmc.h"
 
 Pin pins_active[] = {PINS_ACTIVE};
 Pin pin_3v3 = PIN_PWR_SW_3V3;
@@ -87,6 +88,13 @@ TMC2130RegDCCTRL tmc2130_reg_dcctrl = { // Can only be used together with dcStep
 	}
 };
 
+TMC2130RegENCM_CTRL tmc2130_reg_encm_ctrl = { // Unnecessary
+	.bit = {
+		.inv = 0,
+		.maxspeed = 0
+	}
+};
+
 // Read/Write
 TMC2130RegXDIRECT tmc2130_reg_xdirect = { // Not used in API
 	.bit = {
@@ -125,19 +133,19 @@ TMC2130RegTPOWERDOWN tmc2130_reg_tpowerdown = { // velocity_based_mode_configura
 
 TMC2130RegTPWMTHRS tmc2130_reg_tpwmthrs = { // velocity_based_mode_configuration
 	.bit = {
-		.velocity = TCP2130_CLOCK_FREQUENCY/10000
+		.velocity = TCP2130_CLOCK_FREQUENCY/(500*256)
 	}
 };
 
 TMC2130RegTCOOLTHRS tmc2130_reg_tcoolthrs = { // velocity_based_mode_configuration
 	.bit = {
-		.velocity = TCP2130_CLOCK_FREQUENCY/10000
+		.velocity = TCP2130_CLOCK_FREQUENCY/(500*256)
 	}
 };
 
 TMC2130RegTHIGH tmc2130_reg_thigh = { // velocity_based_mode_configuration
 	.bit = {
-		.velocity = TCP2130_CLOCK_FREQUENCY/40000
+		.velocity = TCP2130_CLOCK_FREQUENCY/(1000*256)
 	}
 };
 
@@ -157,20 +165,12 @@ TMC2130RegPWMCONF tmc2130_reg_pwmconf = { // stealth_configuration
 	.bit = {
 		.pwm_ampl = 0x80,
 		.pwm_grad = 4,
-		.pwm_freq = 1, // Should be fixed if we use external clock
+		.pwm_freq = 1, // We have a fixed external clock of 12.8MHz and with pwm_freq=1 we are about at the optimum of 40kHz PWM frequency
 		.pwm_autoscale = 1, // automatic current control enabled
 		.pwm_symmetric = 0,
 		.freewheel = 0
 	}
 };
-
-TMC2130RegENCM_CTRL tmc2130_reg_encm_ctrl = { // misc_configuration
-	.bit = {
-		.inv = 0,
-		.maxspeed = 0
-	}
-};
-
 
 // Read/Write
 TMC2130RegGCONF tmc2130_reg_gconf = {
@@ -207,7 +207,7 @@ TMC2130RegCHOPCONF tmc2130_reg_chopconf = {
 		.chm = 0, // spreadcycle_configuration
 		.tbl = 1, // spreadcycle_configuration
 		.vsense = 0, // Always 0
-		.vhighfs = 0, // velocity_based_mode_configuration
+		.vhighfs = 0, // Always 0 (is only used for dcStep)
 		.vhighchm = 0, // velocity_based_mode_configuration
 		.sync = 0, // chopsync_configuration
 		.mres = 0, // step_configuration
@@ -217,6 +217,9 @@ TMC2130RegCHOPCONF tmc2130_reg_chopconf = {
 	}
 };
 
+
+uint32_t tcm2130_register_to_write_mask = 0;
+
 extern Pin pins_active[];
 
 void tcm2130_select(void) {
@@ -224,6 +227,7 @@ void tcm2130_select(void) {
 	PIO_Clear(&pins_active[PWR_CS]);
 	SLEEP_NS(250);
 }
+
 void tcm2130_deselect(void) {
 	PIO_Set(&pins_active[PWR_CS]);
 	__enable_irq();
@@ -240,14 +244,36 @@ uint8_t tcm2130_spi_transceive_byte(const uint8_t value) {
 	return USART0->US_RHR;
 }
 
+uint8_t tcm2130_write_buffer_tx[5];
+uint8_t tcm2130_read_buffer_tx[5*2];
+uint8_t tcm2130_read_buffer_rx[5*2];
+
 void tcm2130_write_register(const uint8_t address, const uint32_t value) {
+return;
+
+	tcm2130_write_buffer_tx[0] = address | TCM2130_WRITE;
+	tcm2130_write_buffer_tx[1] = 0xFF & (value >>24);
+	tcm2130_write_buffer_tx[2] = 0xFF & (value >>16);
+	tcm2130_write_buffer_tx[3] = 0xFF & (value >>8);
+	tcm2130_write_buffer_tx[4] = 0xFF & value;
+    USART0->US_TPR = (uint32_t)tcm2130_write_buffer_tx;
+    USART0->US_TCR = 5;
+    USART0->US_PTCR = US_PTCR_TXTEN | US_PTCR_RXTDIS;
+
+
+	while((USART0->US_TCR != 0) || (USART0->US_RCR != 0)) {
+		__NOP();
+		printf("wait for write to finish\n\r");
+	}
+
+    /*
 	tcm2130_select();
 	tcm2130_spi_transceive_byte(address | TCM2130_WRITE);
 	tcm2130_spi_transceive_byte(0xFF & (value >>24));
 	tcm2130_spi_transceive_byte(0xFF & (value >>16));
 	tcm2130_spi_transceive_byte(0xFF & (value >>8));
 	tcm2130_spi_transceive_byte(0xFF & value);
-	tcm2130_deselect();
+	tcm2130_deselect();*/
 }
 
 uint32_t tcm2130_read_register(const uint8_t address) {
@@ -274,6 +300,7 @@ uint32_t tcm2130_read_register(const uint8_t address) {
 void tcm2130_spi_init(void) {
 	// Enable peripheral clock
 	PMC->PMC_PCER0 = 1 << ID_USART0;
+
 	// Configure the USART0 as SPI
 	USART_Configure(USART0,
 					US_MR_USART_MODE_SPI_MASTER |
@@ -291,12 +318,18 @@ void tcm2130_spi_init(void) {
 	USART0->US_CR = US_CR_TXEN;
 	USART0->US_CR = US_CR_RXEN;
 
+    NVIC_DisableIRQ(USART0_IRQn);
+    NVIC_ClearPendingIRQ(USART0_IRQn);
+    NVIC_SetPriority(USART0_IRQn, PRIORITY_USART_DMA);
+    NVIC_EnableIRQ(USART0_IRQn);
+/*
 	Pin pins_config[] = {PINS_CONFIG};
 	pins_config[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
 	pins_config[PWR_SDI].type = PIO_PERIPH_A;				// MISO
 	pins_config[PWR_SCK].type = PIO_PERIPH_B;				// Clock
+	pins_config[PWR_CS].type  = PIO_PERIPH_A;				// Chip Select
 	PIO_Configure(pins_config, PIO_LISTSIZE(pins_config));
-
+*/
 	//tcm2130_print_current_state();
 
 /*	tcm2130_write_register(TMC2130_REG_GCONF, 0x00000001UL);
@@ -324,6 +357,8 @@ void tcm2130_set_active(const bool active) {
 		return;
 	}
 	last_active = active;
+
+	printf("set_active: %d\n\r", active);
 
 	if(active) {
 		PIO_Set(&pin_3v3);
@@ -356,6 +391,35 @@ void tcm2130_set_active(const bool active) {
 		// Interrupt in compare
 		tc_channel_interrupt_set(&STEPPER_TC_CHANNEL, TC_IER_CPCS);
 
+
+		/*// Configure TC2 to be external clock
+	    PMC->PMC_PCER0 = 1 << ID_TC2;
+		tc_channel_init(&STEPPER_CLK_CHANNEL,
+						TC_CMR_WAVE |
+						TC_CMR_TCCLKS_TIMER_CLOCK1 |
+						TC_CMR_EEVT_XC0 |
+						TC_CMR_BCPB_CLEAR |
+						TC_CMR_BCPC_SET |
+						TC_CMR_WAVSEL_UP_RC);
+
+		tc_channel_stop(&STEPPER_CLK_CHANNEL);
+		TC0->TC_WPMR &=  ~(1 << 0);	// clear write protection
+
+		STEPPER_CLK_CHANNEL.TC_RB = 1;
+		STEPPER_CLK_CHANNEL.TC_RC = 3;
+		STEPPER_CLK_CHANNEL.TC_IER = TC_IER_CPCS;*/
+
+		// Configure PWMH3 to be external clock
+		// TODO: We probably have to enable this before we do PIO_Set(&pin_3v3)!
+		PMC->PMC_PCER0 = 1 << ID_PWM;
+		PWMC_ConfigureChannel(PWM, 3, PWM_CMR_CPRE_MCK, /*PWM_CMR_CALG*/ 0, PWM_CMR_CPOL);
+		PWMC_SetPeriod(PWM, 3, 5);
+		PWMC_SetDutyCycle(PWM, 3, 2);
+
+		PWM->PWM_IER1 = PWM_IER1_CHID3;
+
+
+
 		pins_active[PWR_ENABLE].type = PIO_OUTPUT_1;
 		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;
 		pins_active[PWR_STEP].type = PIO_OUTPUT_1;
@@ -365,19 +429,15 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_VREF].type = PIO_INPUT;
 		pins_active[PWR_VREF].attribute = PIO_DEFAULT;
 
-		pins_active[PWR_CLK].type = PIO_OUTPUT_0;
+		pins_active[PWR_CLK].type = PIO_PERIPH_C;
 		pins_active[PWR_CLK].attribute = PIO_DEFAULT;
 		pins_active[PWR_SW_3V3].type = PIO_OUTPUT_1;
 		pins_active[PWR_SW_3V3].attribute = PIO_DEFAULT;
 
-		pins_active[PWR_SDO].type = PIO_OUTPUT_0;
-		pins_active[PWR_SDO].attribute = PIO_DEFAULT;
-		pins_active[PWR_SDI].type = PIO_INPUT;
-		pins_active[PWR_SDI].attribute = PIO_DEFAULT;
-		pins_active[PWR_SCK].type = PIO_OUTPUT_1;
-		pins_active[PWR_CS].type = PIO_OUTPUT_1;
-		pins_active[CFG_4].type = PIO_OUTPUT_0;
-		pins_active[CFG_5].type = PIO_OUTPUT_0;
+		pins_active[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
+		pins_active[PWR_SDI].type = PIO_PERIPH_A;				// MISO
+		pins_active[PWR_SCK].type = PIO_PERIPH_B;				// Clock
+		pins_active[PWR_CS].type  = PIO_PERIPH_A;				// Chip Select
 		pins_active[CFG_DIAG0].type = PIO_INPUT;
 		pins_active[CFG_DIAG0].attribute = PIO_PULLUP;
 		pins_active[CFG_DIAG1].type = PIO_INPUT;
@@ -385,9 +445,17 @@ void tcm2130_set_active(const bool active) {
 
 		PIO_Configure(pins_active, PIO_LISTSIZE(pins_active));
 
+
 		stepper_set_output_current(VREF_DEFAULT_CURRENT);
 //		stepper_set_step_mode(stepper_step_mode);
 //		stepper_set_configuration(stepper_standstill_power_down, stepper_chopper_off_time, stepper_chopper_hysteresis, stepper_chopper_blank_time);
+
+//		tc_channel_start(&STEPPER_CLK_CHANNEL);
+
+		printf("before enable\n\r");
+		PWMC_EnableChannel(PWM, 3);
+		while(!(PWM->PWM_SR & (1 << 3)));
+		printf("after enable\n\r");
 
 		tcm2130_spi_init();
 	} else {
@@ -415,16 +483,55 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_SCK].attribute = PIO_DEFAULT;
 		pins_active[PWR_CS].type = PIO_INPUT;
 		pins_active[PWR_CS].attribute = PIO_DEFAULT;
-		pins_active[CFG_4].type = PIO_INPUT;
-		pins_active[CFG_4].attribute = PIO_DEFAULT;
-		pins_active[CFG_5].type = PIO_INPUT;
-		pins_active[CFG_5].attribute = PIO_DEFAULT;
 		pins_active[CFG_DIAG0].type = PIO_INPUT;
 		pins_active[CFG_DIAG0].attribute = PIO_DEFAULT;
 		pins_active[CFG_DIAG1].type = PIO_INPUT;
 		pins_active[CFG_DIAG1].attribute = PIO_DEFAULT;
 
 		PIO_Configure(pins_active, PIO_LISTSIZE(pins_active));
+	}
+}
+
+void tcm2130_write_register_by_bit(uint32_t register_bit) {
+	switch(register_bit) {
+		case TMC2130_REG_GCONF_BIT:      tcm2130_write_register(TMC2130_REG_GCONF,      tmc2130_reg_gconf.reg);      break;
+		case TMC2130_REG_IHOLD_IRUN_BIT: tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, tmc2130_reg_ihold_run.reg);  break;
+		case TMC2130_REG_TPOWERDOWN_BIT: tcm2130_write_register(TMC2130_REG_TPOWERDOWN, tmc2130_reg_tpowerdown.reg); break;
+		case TMC2130_REG_TPWMTHRS_BIT:   tcm2130_write_register(TMC2130_REG_TPWMTHRS,   tmc2130_reg_tpwmthrs.reg);   break;
+		case TMC2130_REG_TCOOLTHRS_BIT:  tcm2130_write_register(TMC2130_REG_TCOOLTHRS,  tmc2130_reg_tcoolthrs.reg);  break;
+		case TMC2130_REG_THIGH_BIT:      tcm2130_write_register(TMC2130_REG_THIGH,      tmc2130_reg_thigh.reg);      break;
+		case TMC2130_REG_XDIRECT_BIT:    tcm2130_write_register(TMC2130_REG_XDIRECT,    tmc2130_reg_xdirect.reg);    break;
+		case TMC2130_REG_VDCMIN_BIT:     tcm2130_write_register(TMC2130_REG_VDCMIN,     tmc2130_reg_vdcmin.reg);     break;
+		case TMC2130_REG_MSLUT0_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT0,     tmc2130_reg_mslut[0].reg);   break;
+		case TMC2130_REG_MSLUT1_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT1,     tmc2130_reg_mslut[1].reg);   break;
+		case TMC2130_REG_MSLUT2_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT2,     tmc2130_reg_mslut[2].reg);   break;
+		case TMC2130_REG_MSLUT3_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT3,     tmc2130_reg_mslut[3].reg);   break;
+		case TMC2130_REG_MSLUT4_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT4,     tmc2130_reg_mslut[4].reg);   break;
+		case TMC2130_REG_MSLUT5_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT5,     tmc2130_reg_mslut[5].reg);   break;
+		case TMC2130_REG_MSLUT6_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT6,     tmc2130_reg_mslut[6].reg);   break;
+		case TMC2130_REG_MSLUT7_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT7,     tmc2130_reg_mslut[7].reg);   break;
+		case TMC2130_REG_MSLUTSEL_BIT:   tcm2130_write_register(TMC2130_REG_MSLUTSEL,   tmc2130_reg_mslutsel.reg);   break;
+		case TMC2130_REG_MSLUTSTART_BIT: tcm2130_write_register(TMC2130_REG_MSLUTSTART, tmc2130_reg_mslutstart.reg); break;
+		case TMC2130_REG_CHOPCONF_BIT:   tcm2130_write_register(TMC2130_REG_CHOPCONF,   tmc2130_reg_chopconf.reg);   break;
+		case TMC2130_REG_COOLCONF_BIT:   tcm2130_write_register(TMC2130_REG_COOLCONF,   tmc2130_reg_coolconf.reg);   break;
+		case TMC2130_REG_DCCTRL_BIT:     tcm2130_write_register(TMC2130_REG_DCCTRL,     tmc2130_reg_dcctrl.reg);     break;
+		case TMC2130_REG_PWMCONF_BIT:    tcm2130_write_register(TMC2130_REG_PWMCONF,    tmc2130_reg_pwmconf.reg);    break;
+		case TMC2130_REG_ENCM_CTRL_BIT:  tcm2130_write_register(TMC2130_REG_ENCM_CTRL,  tmc2130_reg_encm_ctrl.reg);  break;
+	}
+}
+
+void tcm2130_handle_register_write(void) {
+	if(tcm2130_register_to_write_mask == 0) {
+		return;
+	}
+
+	for(uint8_t i = 0; i < TMC2130_NUM_REGS_TO_WRITE; i++) {
+		const uint32_t bit = 1 << i;
+		if(tcm2130_register_to_write_mask & bit) {
+			tcm2130_write_register_by_bit(bit);
+			tcm2130_register_to_write_mask &= ~bit;
+			return;
+		}
 	}
 }
 

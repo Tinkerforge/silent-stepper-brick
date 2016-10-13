@@ -22,6 +22,7 @@
 #include "communication.h"
 
 #include "silent-stepper.h"
+#include "tcm2130.h"
 
 #include "bricklib/logging/logging.h"
 #include "bricklib/com/com_common.h"
@@ -50,10 +51,22 @@ extern int8_t stepper_state;
 extern uint32_t stepper_time_base;
 extern uint32_t stepper_all_data_period;
 
-extern uint8_t stepper_standstill_power_down;
-extern uint8_t stepper_chopper_off_time;
-extern uint8_t stepper_chopper_hysteresis;
-extern uint8_t stepper_chopper_blank_time;
+extern uint32_t tcm2130_register_to_write_mask;
+
+extern TMC2130RegGSTAT tmc2130_reg_gstat;
+extern TMC2130RegTSTEP tmc2130_reg_tstep;
+extern TMC2130RegDRV_STATUS tmc2130_reg_drv_status;
+extern TMC2130RegPWM_SCALE tmc2130_reg_pwm_scale;
+
+extern TMC2130RegIHOLD_IRUN tmc2130_reg_ihold_run;
+extern TMC2130RegTPOWERDOWN tmc2130_reg_tpowerdown;
+extern TMC2130RegTPWMTHRS tmc2130_reg_tpwmthrs;
+extern TMC2130RegTCOOLTHRS tmc2130_reg_tcoolthrs;
+extern TMC2130RegTHIGH tmc2130_reg_thigh;
+extern TMC2130RegCOOLCONF tmc2130_reg_coolconf;
+extern TMC2130RegPWMCONF tmc2130_reg_pwmconf;
+extern TMC2130RegGCONF tmc2130_reg_gconf;
+extern TMC2130RegCHOPCONF tmc2130_reg_chopconf;
 
 void set_max_velocity(const ComType com, const SetMaxVelocity *data) {
 	uint32_t old_velocity_goal = stepper_velocity_goal;
@@ -179,29 +192,33 @@ void get_remaining_steps(const ComType com, const GetRemainingSteps *data) {
 	grsr.header        = data->header;
 	grsr.header.length = sizeof(GetRemainingStepsReturn);
 	grsr.steps         = stepper_get_remaining_steps();
-
 	send_blocking_with_timeout(&grsr, sizeof(GetRemainingStepsReturn), com);
 }
 
-void set_step_mode(const ComType com, const SetStepMode *data) {
-	if(data->mode > STEP_MODE_SILENT_SIXTEENTH_INTERPOLATE) {
+void set_step_configuration(const ComType com, const SetStepConfiguration *data) {
+	if(data->step_resolution > 8) {
 		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
 		return;
 	}
 
-	stepper_set_step_mode(data->mode);
+	tmc2130_reg_chopconf.bit.mres   = data->step_resolution;
+	tmc2130_reg_chopconf.bit.intpol = data->interpolation;
+
+	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
+	tcm2130_handle_register_write();
 
 	com_return_setter(com, data);
 }
 
-void get_step_mode(const ComType com, const GetStepMode *data) {
-	GetStepModeReturn gsmr;
+void get_step_configuration(const ComType com, const GetStepConfiguration *data) {
+	GetStepConfigurationReturn gscr;
 
-	gsmr.header        = data->header;
-	gsmr.header.length = sizeof(GetStepModeReturn);
-	gsmr.mode          = stepper_get_step_mode();
+	gscr.header          = data->header;
+	gscr.header.length   = sizeof(GetStepConfigurationReturn);
+	gscr.step_resolution = tmc2130_reg_chopconf.bit.mres;
+	gscr.interpolation   = tmc2130_reg_chopconf.bit.intpol;
 
-	send_blocking_with_timeout(&gsmr, sizeof(GetStepModeReturn), com);
+	send_blocking_with_timeout(&gscr, sizeof(GetStepConfigurationReturn), com);
 }
 
 void drive_forward(const ComType com, const DriveForward *data) {
@@ -305,31 +322,204 @@ void is_enabled(const ComType com, const IsEnabled *data) {
 	send_blocking_with_timeout(&ier, sizeof(IsEnabledReturn), com);
 }
 
-void set_configuration(const ComType com, const SetConfiguration *data) {
-	if(data->standstill_power_down > STEPPER_STANDSTILL_POWER_DOWN_OFF ||
-	   data->chopper_off_time > STEPPER_CHOPPER_OFF_TIME_HIGH ||
-	   data->chopper_hysteresis > STEPPER_CHOPPER_HYSTERESIS_HIGH ||
-	   data->chopper_blank_time > STEPPER_CHOPPER_BLANK_TIME_HIGH) {
+void set_basic_configuration(const ComType com, const SetBasicConfiguration *data) {
+	if((data->standstill_current > 31) ||
+	   (data->motor_run_current > 31) ||
+	   (data->standstill_delay_time > 15)) {
 		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
 		return;
 	}
 
-	stepper_set_configuration(data->standstill_power_down, data->chopper_off_time, data->chopper_hysteresis, data->chopper_blank_time);
+	tmc2130_reg_ihold_run.bit.ihold       = data->standstill_current;
+	tmc2130_reg_ihold_run.bit.irun        = data->motor_run_current;
+	tmc2130_reg_ihold_run.bit.ihold_delay = data->standstill_delay_time;
+	tmc2130_reg_tpowerdown.bit.delay      = data->power_down_time;
+	tmc2130_reg_tpwmthrs.bit.velocity     = MIN(TCP2130_CLOCK_FREQUENCY/(data->stealth_threshold*256), 0xfffff);
+	tmc2130_reg_tcoolthrs.bit.velocity    = MIN(TCP2130_CLOCK_FREQUENCY/(data->coolstep_threshold*256), 0xfffff);
+	tmc2130_reg_thigh.bit.velocity        = MIN(TCP2130_CLOCK_FREQUENCY/(data->classic_threshold*256), 0xfffff);
+	tmc2130_reg_chopconf.bit.vhighchm     = data->high_velocity_chopper_mode;
+
+	tcm2130_register_to_write_mask |= (TMC2130_REG_IHOLD_IRUN_BIT | TMC2130_REG_TPOWERDOWN_BIT | TMC2130_REG_TPWMTHRS_BIT | TMC2130_REG_TCOOLTHRS_BIT | TMC2130_REG_THIGH_BIT | TMC2130_REG_CHOPCONF_BIT);
+	tcm2130_handle_register_write();
 
 	com_return_setter(com, data);
 }
 
-void get_configuration(const ComType com, const GetConfiguration *data) {
-	GetConfigurationReturn gcr;
+void get_basic_configuration(const ComType com, const GetBasicConfiguration *data) {
+	GetBasicConfigurationReturn gbcr;
 
-	gcr.header                = data->header;
-	gcr.header.length         = sizeof(GetConfigurationReturn);
-	gcr.standstill_power_down = stepper_standstill_power_down;
-	gcr.chopper_blank_time    = stepper_chopper_blank_time;
-	gcr.chopper_hysteresis    = stepper_chopper_hysteresis;
-	gcr.chopper_off_time      = stepper_chopper_off_time;
+	gbcr.header                     = data->header;
+	gbcr.header.length              = sizeof(GetBasicConfigurationReturn);
+	gbcr.standstill_current         = tmc2130_reg_ihold_run.bit.ihold;
+	gbcr.motor_run_current          = tmc2130_reg_ihold_run.bit.irun;
+	gbcr.standstill_delay_time      = tmc2130_reg_ihold_run.bit.ihold_delay;
+	gbcr.power_down_time            = tmc2130_reg_tpowerdown.bit.delay;
+	gbcr.stealth_threshold          = TCP2130_CLOCK_FREQUENCY/(tmc2130_reg_tpwmthrs.bit.velocity*256);
+	gbcr.coolstep_threshold         = TCP2130_CLOCK_FREQUENCY/(tmc2130_reg_tcoolthrs.bit.velocity*256);
+	gbcr.classic_threshold          = TCP2130_CLOCK_FREQUENCY/(tmc2130_reg_thigh.bit.velocity*256);
+	gbcr.high_velocity_chopper_mode = tmc2130_reg_chopconf.bit.vhighchm;
 
-	send_blocking_with_timeout(&gcr, sizeof(GetConfigurationReturn), com);
+	send_blocking_with_timeout(&gbcr, sizeof(GetBasicConfigurationReturn), com);
+}
+
+void set_spreadcycle_configuration(const ComType com, const SetSpreadcycleConfiguration *data) {
+	if((data->slow_decay_duration > 15) ||
+	   (data->fast_decay_duration > 15) ||
+	   (data->hysteresis_start_value > 7) ||
+	   (data->hysteresis_end_value < -3 || data->hysteresis_end_value > 12) ||
+	   (data->sinewave_offset < -3 || data->sinewave_offset > 12) ||
+	   (data->chopper_mode > 1) ||
+	   (data->comperator_blank_time > 3)) {
+		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
+		return;
+	}
+
+	tmc2130_reg_chopconf.bit.toff      = data->slow_decay_duration;
+	tmc2130_reg_chopconf.bit.rndtf     = data->enable_random_slow_decay;
+	if(data->chopper_mode) {
+		tmc2130_reg_chopconf.bit.hstrt = data->fast_decay_duration & 0b111;
+		tmc2130_reg_chopconf.bit.fd3   = (data->fast_decay_duration >> 3) & 0b1;
+		tmc2130_reg_chopconf.bit.hend  = data->sinewave_offset; // TODO: handle signednes correctly!
+	} else {
+		tmc2130_reg_chopconf.bit.hstrt = data->hysteresis_start_value & 0b111;
+		tmc2130_reg_chopconf.bit.fd3   = 0;
+		tmc2130_reg_chopconf.bit.hend  = data->hysteresis_end_value; // TODO: handle signednes correctly!
+	}
+	tmc2130_reg_chopconf.bit.chm       = data->chopper_mode;
+	tmc2130_reg_chopconf.bit.tbl       = data->comperator_blank_time;
+	tmc2130_reg_chopconf.bit.disfdcc   = data->fast_decay_without_comperator;
+
+	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
+	tcm2130_handle_register_write();
+
+	com_return_setter(com, data);
+}
+
+void get_spreadcycle_configuration(const ComType com, const GetSpreadcycleConfiguration *data) {
+	GetSpreadcycleConfigurationReturn gscr;
+
+	gscr.header                        = data->header;
+	gscr.header.length                 = sizeof(GetSpreadcycleConfigurationReturn);
+	gscr.slow_decay_duration           = tmc2130_reg_chopconf.bit.toff;
+	gscr.enable_random_slow_decay      = tmc2130_reg_chopconf.bit.rndtf;
+	if(tmc2130_reg_chopconf.bit.chm) {
+		gscr.fast_decay_duration       = tmc2130_reg_chopconf.bit.hstrt | (tmc2130_reg_chopconf.bit.fd3 << 3);
+		gscr.sinewave_offset           = tmc2130_reg_chopconf.bit.hend;
+		gscr.hysteresis_start_value    = 0;
+		gscr.hysteresis_end_value      = 0;
+	} else {
+		gscr.fast_decay_duration       = 0;
+		gscr.sinewave_offset           = 0;
+		gscr.hysteresis_start_value    = tmc2130_reg_chopconf.bit.hstrt;
+		gscr.hysteresis_end_value      = tmc2130_reg_chopconf.bit.hend;
+	}
+	gscr.chopper_mode                  = tmc2130_reg_chopconf.bit.chm;
+	gscr.comperator_blank_time         = tmc2130_reg_chopconf.bit.tbl;
+	gscr.fast_decay_without_comperator = tmc2130_reg_chopconf.bit.disfdcc;
+
+	send_blocking_with_timeout(&gscr, sizeof(GetSpreadcycleConfigurationReturn), com);
+}
+
+void set_stealth_configuration(const ComType com, const SetStealthConfiguration *data) {
+	if(data->freewheel_mode > 3) {
+		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
+		return;
+	}
+
+	tmc2130_reg_gconf.bit.en_pwm_mode     = data->enable_stealth;
+	tmc2130_reg_pwmconf.bit.pwm_ampl      = data->amplitude;
+	tmc2130_reg_pwmconf.bit.pwm_grad      = data->gradiant;
+	tmc2130_reg_pwmconf.bit.pwm_autoscale = data->enable_autoscale;
+	tmc2130_reg_pwmconf.bit.pwm_symmetric = data->force_symmetric;
+	tmc2130_reg_pwmconf.bit.freewheel     = data->freewheel_mode;
+
+	tcm2130_register_to_write_mask |= (TMC2130_REG_GCONF_BIT | TMC2130_REG_PWMCONF_BIT);
+	tcm2130_handle_register_write();
+
+	com_return_setter(com, data);
+}
+
+void get_stealth_configuration(const ComType com, const GetStealthConfiguration *data) {
+	GetStealthConfigurationReturn gscr;
+
+	gscr.header           = data->header;
+	gscr.header.length    = sizeof(GetStealthConfigurationReturn);
+	gscr.enable_stealth   = tmc2130_reg_gconf.bit.en_pwm_mode;
+	gscr.amplitude        = tmc2130_reg_pwmconf.bit.pwm_ampl;
+	gscr.gradiant         = tmc2130_reg_pwmconf.bit.pwm_grad;
+	gscr.enable_autoscale = tmc2130_reg_pwmconf.bit.pwm_autoscale;
+	gscr.force_symmetric  = tmc2130_reg_pwmconf.bit.pwm_symmetric;
+	gscr.freewheel_mode   = tmc2130_reg_pwmconf.bit.freewheel;
+
+	send_blocking_with_timeout(&gscr, sizeof(GetStealthConfigurationReturn), com);
+}
+
+void set_coolstep_configuration(const ComType com, const SetCoolstepConfiguration *data) {
+	if((data->minimum_stallguard_value > 15) ||
+	   (data->maximum_stallguard_value > 15) ||
+	   (data->current_up_step_width > 3) ||
+	   (data->current_down_step_width > 3) ||
+	   (data->minimum_current > 1) ||
+	   (data->stallguard_threshold_value < -64 || data->stallguard_threshold_value > 63) ||
+	   (data->stallguard_mode > 1)) {
+		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
+		return;
+	}
+
+	tmc2130_reg_coolconf.bit.semin  = data->minimum_stallguard_value;
+	tmc2130_reg_coolconf.bit.semax  = data->maximum_stallguard_value;
+	tmc2130_reg_coolconf.bit.seup   = data->current_up_step_width;
+	tmc2130_reg_coolconf.bit.sedn   = data->current_down_step_width;
+	tmc2130_reg_coolconf.bit.seimin = data->minimum_current;
+	tmc2130_reg_coolconf.bit.sgt    = data->stallguard_threshold_value;
+	tmc2130_reg_coolconf.bit.sfilt  = data->stallguard_mode;
+
+	tcm2130_register_to_write_mask |= TMC2130_REG_COOLCONF_BIT;
+	tcm2130_handle_register_write();
+
+	com_return_setter(com, data);
+}
+
+void get_coolstep_configuration(const ComType com, const GetCoolstepConfiguration *data) {
+	GetCoolstepConfigurationReturn gccr;
+
+	gccr.header                     = data->header;
+	gccr.header.length              = sizeof(GetCoolstepConfigurationReturn);
+	gccr.minimum_stallguard_value   = tmc2130_reg_coolconf.bit.semin;
+	gccr.maximum_stallguard_value   = tmc2130_reg_coolconf.bit.semax;
+	gccr.current_up_step_width      = tmc2130_reg_coolconf.bit.seup;
+	gccr.current_down_step_width    = tmc2130_reg_coolconf.bit.sedn;
+	gccr.minimum_current            = tmc2130_reg_coolconf.bit.seimin;
+	gccr.stallguard_threshold_value = tmc2130_reg_coolconf.bit.sgt;
+	gccr.stallguard_mode            = tmc2130_reg_coolconf.bit.sfilt;
+
+	send_blocking_with_timeout(&gccr, sizeof(GetCoolstepConfigurationReturn), com);
+}
+
+void set_misc_configuration(const ComType com, const SetMiscConfiguration *data) {
+	if(data->synchronize_phase_frequency > 15) {
+		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
+		return;
+	}
+
+	tmc2130_reg_chopconf.bit.diss2g = data->disable_short_to_ground_protection;
+	tmc2130_reg_chopconf.bit.sync   = data->synchronize_phase_frequency;
+
+	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
+	tcm2130_handle_register_write();
+
+	com_return_setter(com, data);
+}
+
+void get_misc_configuration(const ComType com, const GetMiscConfiguration *data) {
+	GetMiscConfigurationReturn gmcr;
+
+	gmcr.header                             = data->header;
+	gmcr.header.length                      = sizeof(GetMiscConfigurationReturn);
+	gmcr.disable_short_to_ground_protection = tmc2130_reg_chopconf.bit.diss2g;
+	gmcr.synchronize_phase_frequency        = tmc2130_reg_chopconf.bit.sync;
+
+	send_blocking_with_timeout(&gmcr, sizeof(GetMiscConfigurationReturn), com);
 }
 
 void set_minimum_voltage(const ComType com, const SetMinimumVoltage *data) {
