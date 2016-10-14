@@ -220,8 +220,6 @@ TMC2130RegCHOPCONF tmc2130_reg_chopconf = {
 
 uint32_t tcm2130_register_to_write_mask = 0;
 
-extern Pin pins_active[];
-
 void tcm2130_select(void) {
 	__disable_irq();
 	PIO_Clear(&pins_active[PWR_CS]);
@@ -249,8 +247,8 @@ uint8_t tcm2130_read_buffer_tx[5*2];
 uint8_t tcm2130_read_buffer_rx[5*2];
 
 void tcm2130_write_register(const uint8_t address, const uint32_t value) {
-return;
-
+//return;
+/*
 	tcm2130_write_buffer_tx[0] = address | TCM2130_WRITE;
 	tcm2130_write_buffer_tx[1] = 0xFF & (value >>24);
 	tcm2130_write_buffer_tx[2] = 0xFF & (value >>16);
@@ -264,16 +262,25 @@ return;
 	while((USART0->US_TCR != 0) || (USART0->US_RCR != 0)) {
 		__NOP();
 		printf("wait for write to finish\n\r");
-	}
+	}*/
 
-    /*
+
 	tcm2130_select();
 	tcm2130_spi_transceive_byte(address | TCM2130_WRITE);
-	tcm2130_spi_transceive_byte(0xFF & (value >>24));
-	tcm2130_spi_transceive_byte(0xFF & (value >>16));
-	tcm2130_spi_transceive_byte(0xFF & (value >>8));
+	tcm2130_spi_transceive_byte(0xFF & (value >> 24));
+	tcm2130_spi_transceive_byte(0xFF & (value >> 16));
+	tcm2130_spi_transceive_byte(0xFF & (value >> 8));
 	tcm2130_spi_transceive_byte(0xFF & value);
-	tcm2130_deselect();*/
+	tcm2130_deselect();
+/*
+	tcm2130_select();
+	uint8_t res1 = tcm2130_spi_transceive_byte(0);
+	uint8_t res2 = tcm2130_spi_transceive_byte(0);
+	uint8_t res3 = tcm2130_spi_transceive_byte(0);
+	uint8_t res4 = tcm2130_spi_transceive_byte(0);
+	uint8_t res5 = tcm2130_spi_transceive_byte(0);
+	tcm2130_deselect();
+	printf("res: %d %d %d %d %d\n\r", res1, res2, res3, res4, res5);*/
 }
 
 uint32_t tcm2130_read_register(const uint8_t address) {
@@ -286,7 +293,7 @@ uint32_t tcm2130_read_register(const uint8_t address) {
 	tcm2130_deselect();
 
 	tcm2130_select();
-	tcm2130_spi_transceive_byte(0);  //drop status
+	tcm2130_spi_transceive_byte(0); // drop status
 	uint32_t value = tcm2130_spi_transceive_byte(0) << 24;
 	value |= tcm2130_spi_transceive_byte(0) << 16;
 	value |= tcm2130_spi_transceive_byte(0) << 8;
@@ -318,10 +325,11 @@ void tcm2130_spi_init(void) {
 	USART0->US_CR = US_CR_TXEN;
 	USART0->US_CR = US_CR_RXEN;
 
+	/*
     NVIC_DisableIRQ(USART0_IRQn);
     NVIC_ClearPendingIRQ(USART0_IRQn);
     NVIC_SetPriority(USART0_IRQn, PRIORITY_USART_DMA);
-    NVIC_EnableIRQ(USART0_IRQn);
+    NVIC_EnableIRQ(USART0_IRQn);*/
 /*
 	Pin pins_config[] = {PINS_CONFIG};
 	pins_config[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
@@ -348,6 +356,8 @@ void tcm2130_spi_init(void) {
 	tcm2130_write_register(TMC2130_REG_ENCM_CTRL, tmc2130_reg_encm_ctrl.reg);
 	tcm2130_write_register(TMC2130_REG_GCONF, tmc2130_reg_gconf.reg);
 	tcm2130_write_register(TMC2130_REG_CHOPCONF, tmc2130_reg_chopconf.reg);
+
+	tcm2130_print_current_state();
 }
 
 void tcm2130_set_active(const bool active) {
@@ -411,12 +421,15 @@ void tcm2130_set_active(const bool active) {
 
 		// Configure PWMH3 to be external clock
 		// TODO: We probably have to enable this before we do PIO_Set(&pin_3v3)!
+#if 0
+		// Unten enable nicht vergessen einzukommentieren!
 		PMC->PMC_PCER0 = 1 << ID_PWM;
 		PWMC_ConfigureChannel(PWM, 3, PWM_CMR_CPRE_MCK, /*PWM_CMR_CALG*/ 0, PWM_CMR_CPOL);
 		PWMC_SetPeriod(PWM, 3, 5);
 		PWMC_SetDutyCycle(PWM, 3, 2);
 
 		PWM->PWM_IER1 = PWM_IER1_CHID3;
+#endif
 
 
 
@@ -429,7 +442,7 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_VREF].type = PIO_INPUT;
 		pins_active[PWR_VREF].attribute = PIO_DEFAULT;
 
-		pins_active[PWR_CLK].type = PIO_PERIPH_C;
+		pins_active[PWR_CLK].type = PIO_OUTPUT_0;//PIO_PERIPH_C;
 		pins_active[PWR_CLK].attribute = PIO_DEFAULT;
 		pins_active[PWR_SW_3V3].type = PIO_OUTPUT_1;
 		pins_active[PWR_SW_3V3].attribute = PIO_DEFAULT;
@@ -437,7 +450,7 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
 		pins_active[PWR_SDI].type = PIO_PERIPH_A;				// MISO
 		pins_active[PWR_SCK].type = PIO_PERIPH_B;				// Clock
-		pins_active[PWR_CS].type  = PIO_PERIPH_A;				// Chip Select
+		pins_active[PWR_CS].type  = PIO_OUTPUT_1; //PIO_PERIPH_A;				// Chip Select
 		pins_active[CFG_DIAG0].type = PIO_INPUT;
 		pins_active[CFG_DIAG0].attribute = PIO_PULLUP;
 		pins_active[CFG_DIAG1].type = PIO_INPUT;
@@ -447,16 +460,13 @@ void tcm2130_set_active(const bool active) {
 
 
 		stepper_set_output_current(VREF_DEFAULT_CURRENT);
-//		stepper_set_step_mode(stepper_step_mode);
-//		stepper_set_configuration(stepper_standstill_power_down, stepper_chopper_off_time, stepper_chopper_hysteresis, stepper_chopper_blank_time);
 
-//		tc_channel_start(&STEPPER_CLK_CHANNEL);
-
+#if 0
 		printf("before enable\n\r");
 		PWMC_EnableChannel(PWM, 3);
 		while(!(PWM->PWM_SR & (1 << 3)));
 		printf("after enable\n\r");
-
+#endif
 		tcm2130_spi_init();
 	} else {
 		PIO_Clear(&pin_3v3);
