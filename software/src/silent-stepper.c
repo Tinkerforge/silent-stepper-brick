@@ -274,7 +274,7 @@ void tick_task(const uint8_t tick_type) {
 		if((stepper_get_external_voltage() > STEPPER_VOLTAGE_EPSILON) || (stepper_get_stack_voltage() > STEPPER_VOLTAGE_EPSILON)) {
 			tcm2130_set_active(true);
 		} else {
-			tcm2130_set_active(true); // TODO: FIXME: Set to false
+			tcm2130_set_active(false);
 		}
 
 		stepper_all_data_period_counter++;
@@ -354,7 +354,7 @@ void stepper_init(void) {
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
 	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
 
-	tcm2130_set_active(true); // TODO: FIXME: Set to false here!
+	tcm2130_set_active(false); // TODO: FIXME: Set to false here!
 	SLEEP_MS(40);
 }
 
