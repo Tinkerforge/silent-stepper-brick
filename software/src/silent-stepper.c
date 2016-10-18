@@ -42,6 +42,7 @@
 #include "bricklib/utility/led.h"
 #include "bricklib/utility/init.h"
 
+
 Pin pin_voltage_switch = VOLTAGE_STACK_SWITCH_PIN;
 
 Pin pin_enable =  PIN_ENABLE;
@@ -75,6 +76,7 @@ int32_t stepper_delay_rest = 0;
 int32_t stepper_deceleration_start = 0;
 uint32_t stepper_tick_counter = 0;
 uint32_t stepper_tick_calc_counter = 0;
+uint8_t stepper_tick_read_counter = 0;
 
 uint32_t stepper_time_base = 1;
 uint32_t stepper_time_base_counter = 1;
@@ -251,14 +253,18 @@ void tick_task(const uint8_t tick_type) {
 	static int8_t message_counter = 0;
 
 	if(tick_type == TICK_TASK_TYPE_CALCULATION) {
-		tcm2130_handle_register_write();
+		tcm2130_handle_register_read_and_write();
+
+		stepper_tick_read_counter++;
+		if(stepper_tick_read_counter >= STEPPER_READ_REGISTER_PERIOD) {
+			tcm2130_update_read_registers();
+			stepper_tick_read_counter = 0;
+		}
 
 		stepper_tick_calc_counter++;
 		stepper_current_sum += adc_channel_get_data(STEPPER_CURRENT_CHANNEL);
 		if(stepper_tick_calc_counter % 100 == 0) {
-//			printf("before tstep\n\r");
-//			uint32_t value = tcm2130_read_register(TMC2130_REG_TSTEP);
-//			printf("tstep: %d\n\r", value);
+
 			stepper_current = stepper_current_sum/100;
 			stepper_current_sum = 0;
 		}

@@ -27,6 +27,8 @@
 
 #include "silent-stepper.h"
 
+#include "bricklib/logging/logging.h"
+
 #include "bricklib/drivers/pio/pio.h"
 #include "bricklib/drivers/usart/usart.h"
 #include "bricklib/drivers/dacc/dacc.h"
@@ -105,8 +107,6 @@ TMC2130RegXDIRECT tmc2130_reg_xdirect = { // Not used in API
 
 
 
-
-
 // Used registers
 
 // Read Only
@@ -119,8 +119,8 @@ TMC2130RegPWM_SCALE tmc2130_reg_pwm_scale;  // Can be used to detect motor stall
 // Write Only
 TMC2130RegIHOLD_IRUN tmc2130_reg_ihold_run = { // velocity_based_mode_configuration
 	.bit = {
-		.ihold = 16,
-		.irun = 8,
+		.ihold = 8,
+		.irun = 31,
 		.ihold_delay = 0
 	}
 };
@@ -211,7 +211,7 @@ TMC2130RegCHOPCONF tmc2130_reg_chopconf = {
 		.vhighchm = 0, // velocity_based_mode_configuration
 		.sync = 0, // chopsync_configuration
 		.mres = 0, // step_configuration
-		.intpol = 0, // step_configuration
+		.intpol = 1, // step_configuration
 		.dedge = 1, // Always 1.
 		.diss2g = 0 // misc_configuration
 	}
@@ -219,17 +219,34 @@ TMC2130RegCHOPCONF tmc2130_reg_chopconf = {
 
 
 uint32_t tcm2130_register_to_write_mask = 0;
+uint32_t tcm2130_register_to_read_mask = 0;
+
+uint8_t tcm2130_write_buffer[5];
+uint8_t tcm2130_read_buffer[5];
+
+uint32_t tcm2130_current_read_bit = 0;
+
+bool tcm2130_is_active = false;
+
+typedef enum {
+	TCM2130_STATUS_IDLE,
+	TCM2130_STATUS_READ_WRITE_REG,
+	TCM2130_STATUS_READ_WRITE_REG_NEXT,
+	TCM2130_STATUS_READ,
+	TCM2130_STATUS_READ_DONE,
+	TCM2130_STATUS_WRITE
+} TCM2130Status;
+
+TCM2130Status tcm2130_status = TCM2130_STATUS_IDLE;
 
 void tcm2130_select(void) {
-	__disable_irq();
-	PIO_Clear(&pins_active[PWR_CS]);
-	SLEEP_NS(250);
+	USART0->US_CR |= US_CR_RTSEN;
+    SLEEP_NS(250);
 }
 
 void tcm2130_deselect(void) {
-	PIO_Set(&pins_active[PWR_CS]);
-	__enable_irq();
-	SLEEP_NS(250);
+   	SLEEP_NS(250);
+	USART0->US_CR |= US_CR_RTSDIS;
 }
 
 uint8_t tcm2130_spi_transceive_byte(const uint8_t value) {
@@ -242,65 +259,101 @@ uint8_t tcm2130_spi_transceive_byte(const uint8_t value) {
 	return USART0->US_RHR;
 }
 
-uint8_t tcm2130_write_buffer_tx[5];
-uint8_t tcm2130_read_buffer_tx[5*2];
-uint8_t tcm2130_read_buffer_rx[5*2];
 
-void tcm2130_write_register(const uint8_t address, const uint32_t value) {
-//return;
-/*
-	tcm2130_write_buffer_tx[0] = address | TCM2130_WRITE;
-	tcm2130_write_buffer_tx[1] = 0xFF & (value >>24);
-	tcm2130_write_buffer_tx[2] = 0xFF & (value >>16);
-	tcm2130_write_buffer_tx[3] = 0xFF & (value >>8);
-	tcm2130_write_buffer_tx[4] = 0xFF & value;
-    USART0->US_TPR = (uint32_t)tcm2130_write_buffer_tx;
+void tcm2130_write_register(const uint8_t address, const uint32_t value, const bool busy_waiting) {
+	if(tcm2130_status != TCM2130_STATUS_IDLE) {
+		return;
+	}
+
+	tcm2130_select();
+	tcm2130_write_buffer[0] = address | TCM2130_WRITE;
+	tcm2130_write_buffer[1] = 0xFF & (value >> 24);
+	tcm2130_write_buffer[2] = 0xFF & (value >> 16);
+	tcm2130_write_buffer[3] = 0xFF & (value >>  8);
+	tcm2130_write_buffer[4] = 0xFF &  value;
+    USART0->US_TPR = (uint32_t)tcm2130_write_buffer;
     USART0->US_TCR = 5;
-    USART0->US_PTCR = US_PTCR_TXTEN | US_PTCR_RXTDIS;
+    USART0->US_RPR = (uint32_t)tcm2130_read_buffer;
+    USART0->US_RCR = 5;
+    USART0->US_PTCR = US_PTCR_TXTEN | US_PTCR_RXTEN;
 
-
-	while((USART0->US_TCR != 0) || (USART0->US_RCR != 0)) {
-		__NOP();
-		printf("wait for write to finish\n\r");
-	}*/
-
-
-	tcm2130_select();
-	tcm2130_spi_transceive_byte(address | TCM2130_WRITE);
-	tcm2130_spi_transceive_byte(0xFF & (value >> 24));
-	tcm2130_spi_transceive_byte(0xFF & (value >> 16));
-	tcm2130_spi_transceive_byte(0xFF & (value >> 8));
-	tcm2130_spi_transceive_byte(0xFF & value);
-	tcm2130_deselect();
-/*
-	tcm2130_select();
-	uint8_t res1 = tcm2130_spi_transceive_byte(0);
-	uint8_t res2 = tcm2130_spi_transceive_byte(0);
-	uint8_t res3 = tcm2130_spi_transceive_byte(0);
-	uint8_t res4 = tcm2130_spi_transceive_byte(0);
-	uint8_t res5 = tcm2130_spi_transceive_byte(0);
-	tcm2130_deselect();
-	printf("res: %d %d %d %d %d\n\r", res1, res2, res3, res4, res5);*/
+    if(busy_waiting) {
+    	while((!(USART0->US_CSR & US_CSR_TXBUFE)) ||
+    	      (!(USART0->US_CSR & US_CSR_ENDTX))  ||
+    	      (!(USART0->US_CSR & US_CSR_RXBUFF)) ||
+    	      (!(USART0->US_CSR & US_CSR_ENDRX))) {
+    		__NOP();
+    	}
+    	tcm2130_deselect();
+	} else {
+		tcm2130_status = TCM2130_STATUS_WRITE;
+	}
 }
 
-uint32_t tcm2130_read_register(const uint8_t address) {
-	tcm2130_select();
-	tcm2130_spi_transceive_byte(address | TCM2130_READ);
-	tcm2130_spi_transceive_byte(0);
-	tcm2130_spi_transceive_byte(0);
-	tcm2130_spi_transceive_byte(0);
-	tcm2130_spi_transceive_byte(0);
-	tcm2130_deselect();
+uint32_t tcm2130_read_register(const uint8_t address, const bool busy_waiting) {
+	if(tcm2130_status == TCM2130_STATUS_IDLE) {
+		tcm2130_select();
+		tcm2130_write_buffer[0] = address | TCM2130_READ;
+		tcm2130_write_buffer[1] = 0;
+		tcm2130_write_buffer[2] = 0;
+		tcm2130_write_buffer[3] = 0;
+		tcm2130_write_buffer[4] = 0;
+		USART0->US_TPR = (uint32_t)tcm2130_write_buffer;
+		USART0->US_TCR = 5;
+		USART0->US_RPR = (uint32_t)tcm2130_read_buffer;
+		USART0->US_RCR = 5;
+		USART0->US_PTCR = US_PTCR_TXTEN | US_PTCR_RXTEN;
 
-	tcm2130_select();
-	tcm2130_spi_transceive_byte(0); // drop status
-	uint32_t value = tcm2130_spi_transceive_byte(0) << 24;
-	value |= tcm2130_spi_transceive_byte(0) << 16;
-	value |= tcm2130_spi_transceive_byte(0) << 8;
-	value |= tcm2130_spi_transceive_byte(0);
-	tcm2130_deselect();
+		if(busy_waiting) {
+			while((!(USART0->US_CSR & US_CSR_TXBUFE)) ||
+				  (!(USART0->US_CSR & US_CSR_ENDTX))  ||
+				  (!(USART0->US_CSR & US_CSR_RXBUFF)) ||
+				  (!(USART0->US_CSR & US_CSR_ENDRX))) {
+				__NOP();
+			}
+			tcm2130_deselect();
+		} else {
+			tcm2130_status = TCM2130_STATUS_READ_WRITE_REG;
+		}
+	} else if(tcm2130_status == TCM2130_STATUS_READ_WRITE_REG_NEXT) {
+		tcm2130_select();
+		tcm2130_write_buffer[0] = 0;
+		tcm2130_write_buffer[1] = 0;
+		tcm2130_write_buffer[2] = 0;
+		tcm2130_write_buffer[3] = 0;
+		tcm2130_write_buffer[4] = 0;
+		USART0->US_TPR = (uint32_t)tcm2130_write_buffer;
+		USART0->US_TCR = 5;
+		USART0->US_RPR = (uint32_t)tcm2130_read_buffer;
+		USART0->US_RCR = 5;
+		USART0->US_PTCR = US_PTCR_TXTEN | US_PTCR_RXTEN;
 
-	return value;
+		if(busy_waiting) {
+			while((!(USART0->US_CSR & US_CSR_TXBUFE)) ||
+				  (!(USART0->US_CSR & US_CSR_ENDTX))  ||
+				  (!(USART0->US_CSR & US_CSR_RXBUFF)) ||
+				  (!(USART0->US_CSR & US_CSR_ENDRX))) {
+				__NOP();
+			}
+			uint32_t value  = tcm2130_read_buffer[1] << 24;
+			         value |= tcm2130_read_buffer[2] << 16;
+			         value |= tcm2130_read_buffer[3] <<  8;
+			         value |= tcm2130_read_buffer[4] <<  0;
+			return value;
+		} else {
+			tcm2130_status = TCM2130_STATUS_READ;
+		}
+	} else if(tcm2130_status == TCM2130_STATUS_READ) {
+		uint32_t value  = tcm2130_read_buffer[1] << 24;
+		         value |= tcm2130_read_buffer[2] << 16;
+		         value |= tcm2130_read_buffer[3] <<  8;
+		         value |= tcm2130_read_buffer[4] <<  0;
+
+		tcm2130_status = TCM2130_STATUS_READ_DONE;
+		return value;
+	}
+
+	return 0;
 }
 
 
@@ -325,50 +378,40 @@ void tcm2130_spi_init(void) {
 	USART0->US_CR = US_CR_TXEN;
 	USART0->US_CR = US_CR_RXEN;
 
-	/*
+
     NVIC_DisableIRQ(USART0_IRQn);
     NVIC_ClearPendingIRQ(USART0_IRQn);
     NVIC_SetPriority(USART0_IRQn, PRIORITY_USART_DMA);
-    NVIC_EnableIRQ(USART0_IRQn);*/
-/*
-	Pin pins_config[] = {PINS_CONFIG};
-	pins_config[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
-	pins_config[PWR_SDI].type = PIO_PERIPH_A;				// MISO
-	pins_config[PWR_SCK].type = PIO_PERIPH_B;				// Clock
-	pins_config[PWR_CS].type  = PIO_PERIPH_A;				// Chip Select
-	PIO_Configure(pins_config, PIO_LISTSIZE(pins_config));
-*/
-	//tcm2130_print_current_state();
+    NVIC_EnableIRQ(USART0_IRQn);
 
-/*	tcm2130_write_register(TMC2130_REG_GCONF, 0x00000001UL);
-	tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, 0x00001010UL);
-	tcm2130_write_register(TMC2130_REG_CHOPCONF, 0x00008008UL);*/
-
-	printf("%lx %lx %lx\n\r", tmc2130_reg_gconf.reg, tmc2130_reg_ihold_run.reg, tmc2130_reg_chopconf.reg);
-
-	tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, tmc2130_reg_ihold_run.reg);
-	tcm2130_write_register(TMC2130_REG_TPOWERDOWN, tmc2130_reg_tpowerdown.reg);
-	tcm2130_write_register(TMC2130_REG_TPWMTHRS, tmc2130_reg_tpwmthrs.reg);
-	tcm2130_write_register(TMC2130_REG_TCOOLTHRS, tmc2130_reg_tcoolthrs.reg);
-	tcm2130_write_register(TMC2130_REG_THIGH, tmc2130_reg_thigh.reg);
-	tcm2130_write_register(TMC2130_REG_COOLCONF, tmc2130_reg_coolconf.reg);
-	tcm2130_write_register(TMC2130_REG_PWMCONF, tmc2130_reg_pwmconf.reg);
-	tcm2130_write_register(TMC2130_REG_ENCM_CTRL, tmc2130_reg_encm_ctrl.reg);
-	tcm2130_write_register(TMC2130_REG_GCONF, tmc2130_reg_gconf.reg);
-	tcm2130_write_register(TMC2130_REG_CHOPCONF, tmc2130_reg_chopconf.reg);
-
-	tcm2130_print_current_state();
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, tmc2130_reg_ihold_run.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_TPOWERDOWN, tmc2130_reg_tpowerdown.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_TPWMTHRS, tmc2130_reg_tpwmthrs.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_TCOOLTHRS, tmc2130_reg_tcoolthrs.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_THIGH, tmc2130_reg_thigh.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_COOLCONF, tmc2130_reg_coolconf.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_PWMCONF, tmc2130_reg_pwmconf.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_ENCM_CTRL, tmc2130_reg_encm_ctrl.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_GCONF, tmc2130_reg_gconf.reg, true);
+	SLEEP_US(10);
+	tcm2130_write_register(TMC2130_REG_CHOPCONF, tmc2130_reg_chopconf.reg, true);
+	SLEEP_US(10);
 }
 
 void tcm2130_set_active(const bool active) {
-	static bool last_active = false;
-
-	if(active == last_active) {
+	if(active == tcm2130_is_active) {
 		return;
 	}
-	last_active = active;
-
-	printf("set_active: %d\n\r", active);
+	tcm2130_is_active = active;
 
 	if(active) {
 		PIO_Set(&pin_3v3);
@@ -401,37 +444,12 @@ void tcm2130_set_active(const bool active) {
 		// Interrupt in compare
 		tc_channel_interrupt_set(&STEPPER_TC_CHANNEL, TC_IER_CPCS);
 
-
-		/*// Configure TC2 to be external clock
-	    PMC->PMC_PCER0 = 1 << ID_TC2;
-		tc_channel_init(&STEPPER_CLK_CHANNEL,
-						TC_CMR_WAVE |
-						TC_CMR_TCCLKS_TIMER_CLOCK1 |
-						TC_CMR_EEVT_XC0 |
-						TC_CMR_BCPB_CLEAR |
-						TC_CMR_BCPC_SET |
-						TC_CMR_WAVSEL_UP_RC);
-
-		tc_channel_stop(&STEPPER_CLK_CHANNEL);
-		TC0->TC_WPMR &=  ~(1 << 0);	// clear write protection
-
-		STEPPER_CLK_CHANNEL.TC_RB = 1;
-		STEPPER_CLK_CHANNEL.TC_RC = 3;
-		STEPPER_CLK_CHANNEL.TC_IER = TC_IER_CPCS;*/
-
 		// Configure PWMH3 to be external clock
-		// TODO: We probably have to enable this before we do PIO_Set(&pin_3v3)!
-#if 0
-		// Unten enable nicht vergessen einzukommentieren!
 		PMC->PMC_PCER0 = 1 << ID_PWM;
 		PWMC_ConfigureChannel(PWM, 3, PWM_CMR_CPRE_MCK, /*PWM_CMR_CALG*/ 0, PWM_CMR_CPOL);
 		PWMC_SetPeriod(PWM, 3, 5);
 		PWMC_SetDutyCycle(PWM, 3, 2);
-
 		PWM->PWM_IER1 = PWM_IER1_CHID3;
-#endif
-
-
 
 		pins_active[PWR_ENABLE].type = PIO_OUTPUT_1;
 		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;
@@ -442,7 +460,7 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_VREF].type = PIO_INPUT;
 		pins_active[PWR_VREF].attribute = PIO_DEFAULT;
 
-		pins_active[PWR_CLK].type = PIO_OUTPUT_0;//PIO_PERIPH_C;
+		pins_active[PWR_CLK].type = PIO_PERIPH_C;
 		pins_active[PWR_CLK].attribute = PIO_DEFAULT;
 		pins_active[PWR_SW_3V3].type = PIO_OUTPUT_1;
 		pins_active[PWR_SW_3V3].attribute = PIO_DEFAULT;
@@ -450,7 +468,7 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
 		pins_active[PWR_SDI].type = PIO_PERIPH_A;				// MISO
 		pins_active[PWR_SCK].type = PIO_PERIPH_B;				// Clock
-		pins_active[PWR_CS].type  = PIO_OUTPUT_1; //PIO_PERIPH_A;				// Chip Select
+		pins_active[PWR_CS].type  = PIO_PERIPH_A;	//PIO_OUTPUT_1; //			// Chip Select
 		pins_active[CFG_DIAG0].type = PIO_INPUT;
 		pins_active[CFG_DIAG0].attribute = PIO_PULLUP;
 		pins_active[CFG_DIAG1].type = PIO_INPUT;
@@ -461,12 +479,9 @@ void tcm2130_set_active(const bool active) {
 
 		stepper_set_output_current(VREF_DEFAULT_CURRENT);
 
-#if 0
-		printf("before enable\n\r");
 		PWMC_EnableChannel(PWM, 3);
-		while(!(PWM->PWM_SR & (1 << 3)));
-		printf("after enable\n\r");
-#endif
+		while(!(PWM->PWM_SR & (1 << 3))); // Wait for PWM to be active
+
 		tcm2130_spi_init();
 	} else {
 		PIO_Clear(&pin_3v3);
@@ -499,49 +514,154 @@ void tcm2130_set_active(const bool active) {
 		pins_active[CFG_DIAG1].attribute = PIO_DEFAULT;
 
 		PIO_Configure(pins_active, PIO_LISTSIZE(pins_active));
+
+		PMC->PMC_PCER0 &= ~(1 << ID_USART0);
+
+		// Disable receiver and transmitter
+		USART0->US_CR = US_CR_TXDIS;
+		USART0->US_CR = US_CR_RXDIS;
+
+		tcm2130_status = TCM2130_STATUS_IDLE;
+	}
+}
+
+void tcm2130_read_register_by_bit(uint32_t register_bit) {
+	tcm2130_current_read_bit = register_bit;
+	uint32_t *read_address = NULL;
+
+	uint8_t reg = 0;
+	switch(register_bit) {
+		case TMC2130_REG_GSTAT_BIT:      reg = TMC2130_REG_GSTAT;      read_address = &tmc2130_reg_gstat.reg;      break;
+		case TMC2130_REG_TSTEP_BIT:      reg = TMC2130_REG_TSTEP;      read_address = &tmc2130_reg_tstep.reg;      break;
+		case TMC2130_REG_DRV_STATUS_BIT: reg = TMC2130_REG_DRV_STATUS; read_address = &tmc2130_reg_drv_status.reg; break;
+		case TMC2130_REG_PWM_SCALE_BIT:  reg = TMC2130_REG_PWM_SCALE;  read_address = &tmc2130_reg_pwm_scale.reg;  break;
+	}
+
+	uint32_t value = tcm2130_read_register(reg, false);
+	if(tcm2130_status == TCM2130_STATUS_READ_DONE) {
+		if(read_address != NULL) {
+			*read_address = value;
+		}
 	}
 }
 
 void tcm2130_write_register_by_bit(uint32_t register_bit) {
 	switch(register_bit) {
-		case TMC2130_REG_GCONF_BIT:      tcm2130_write_register(TMC2130_REG_GCONF,      tmc2130_reg_gconf.reg);      break;
-		case TMC2130_REG_IHOLD_IRUN_BIT: tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, tmc2130_reg_ihold_run.reg);  break;
-		case TMC2130_REG_TPOWERDOWN_BIT: tcm2130_write_register(TMC2130_REG_TPOWERDOWN, tmc2130_reg_tpowerdown.reg); break;
-		case TMC2130_REG_TPWMTHRS_BIT:   tcm2130_write_register(TMC2130_REG_TPWMTHRS,   tmc2130_reg_tpwmthrs.reg);   break;
-		case TMC2130_REG_TCOOLTHRS_BIT:  tcm2130_write_register(TMC2130_REG_TCOOLTHRS,  tmc2130_reg_tcoolthrs.reg);  break;
-		case TMC2130_REG_THIGH_BIT:      tcm2130_write_register(TMC2130_REG_THIGH,      tmc2130_reg_thigh.reg);      break;
-		case TMC2130_REG_XDIRECT_BIT:    tcm2130_write_register(TMC2130_REG_XDIRECT,    tmc2130_reg_xdirect.reg);    break;
-		case TMC2130_REG_VDCMIN_BIT:     tcm2130_write_register(TMC2130_REG_VDCMIN,     tmc2130_reg_vdcmin.reg);     break;
-		case TMC2130_REG_MSLUT0_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT0,     tmc2130_reg_mslut[0].reg);   break;
-		case TMC2130_REG_MSLUT1_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT1,     tmc2130_reg_mslut[1].reg);   break;
-		case TMC2130_REG_MSLUT2_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT2,     tmc2130_reg_mslut[2].reg);   break;
-		case TMC2130_REG_MSLUT3_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT3,     tmc2130_reg_mslut[3].reg);   break;
-		case TMC2130_REG_MSLUT4_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT4,     tmc2130_reg_mslut[4].reg);   break;
-		case TMC2130_REG_MSLUT5_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT5,     tmc2130_reg_mslut[5].reg);   break;
-		case TMC2130_REG_MSLUT6_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT6,     tmc2130_reg_mslut[6].reg);   break;
-		case TMC2130_REG_MSLUT7_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT7,     tmc2130_reg_mslut[7].reg);   break;
-		case TMC2130_REG_MSLUTSEL_BIT:   tcm2130_write_register(TMC2130_REG_MSLUTSEL,   tmc2130_reg_mslutsel.reg);   break;
-		case TMC2130_REG_MSLUTSTART_BIT: tcm2130_write_register(TMC2130_REG_MSLUTSTART, tmc2130_reg_mslutstart.reg); break;
-		case TMC2130_REG_CHOPCONF_BIT:   tcm2130_write_register(TMC2130_REG_CHOPCONF,   tmc2130_reg_chopconf.reg);   break;
-		case TMC2130_REG_COOLCONF_BIT:   tcm2130_write_register(TMC2130_REG_COOLCONF,   tmc2130_reg_coolconf.reg);   break;
-		case TMC2130_REG_DCCTRL_BIT:     tcm2130_write_register(TMC2130_REG_DCCTRL,     tmc2130_reg_dcctrl.reg);     break;
-		case TMC2130_REG_PWMCONF_BIT:    tcm2130_write_register(TMC2130_REG_PWMCONF,    tmc2130_reg_pwmconf.reg);    break;
-		case TMC2130_REG_ENCM_CTRL_BIT:  tcm2130_write_register(TMC2130_REG_ENCM_CTRL,  tmc2130_reg_encm_ctrl.reg);  break;
+		case TMC2130_REG_GCONF_BIT:      tcm2130_write_register(TMC2130_REG_GCONF,      tmc2130_reg_gconf.reg,      false); break;
+		case TMC2130_REG_IHOLD_IRUN_BIT: tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, tmc2130_reg_ihold_run.reg,  false); break;
+		case TMC2130_REG_TPOWERDOWN_BIT: tcm2130_write_register(TMC2130_REG_TPOWERDOWN, tmc2130_reg_tpowerdown.reg, false); break;
+		case TMC2130_REG_TPWMTHRS_BIT:   tcm2130_write_register(TMC2130_REG_TPWMTHRS,   tmc2130_reg_tpwmthrs.reg,   false); break;
+		case TMC2130_REG_TCOOLTHRS_BIT:  tcm2130_write_register(TMC2130_REG_TCOOLTHRS,  tmc2130_reg_tcoolthrs.reg,  false); break;
+		case TMC2130_REG_THIGH_BIT:      tcm2130_write_register(TMC2130_REG_THIGH,      tmc2130_reg_thigh.reg,      false); break;
+		case TMC2130_REG_XDIRECT_BIT:    tcm2130_write_register(TMC2130_REG_XDIRECT,    tmc2130_reg_xdirect.reg,    false); break;
+		case TMC2130_REG_VDCMIN_BIT:     tcm2130_write_register(TMC2130_REG_VDCMIN,     tmc2130_reg_vdcmin.reg,     false); break;
+		case TMC2130_REG_MSLUT0_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT0,     tmc2130_reg_mslut[0].reg,   false); break;
+		case TMC2130_REG_MSLUT1_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT1,     tmc2130_reg_mslut[1].reg,   false); break;
+		case TMC2130_REG_MSLUT2_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT2,     tmc2130_reg_mslut[2].reg,   false); break;
+		case TMC2130_REG_MSLUT3_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT3,     tmc2130_reg_mslut[3].reg,   false); break;
+		case TMC2130_REG_MSLUT4_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT4,     tmc2130_reg_mslut[4].reg,   false); break;
+		case TMC2130_REG_MSLUT5_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT5,     tmc2130_reg_mslut[5].reg,   false); break;
+		case TMC2130_REG_MSLUT6_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT6,     tmc2130_reg_mslut[6].reg,   false); break;
+		case TMC2130_REG_MSLUT7_BIT:     tcm2130_write_register(TMC2130_REG_MSLUT7,     tmc2130_reg_mslut[7].reg,   false); break;
+		case TMC2130_REG_MSLUTSEL_BIT:   tcm2130_write_register(TMC2130_REG_MSLUTSEL,   tmc2130_reg_mslutsel.reg,   false); break;
+		case TMC2130_REG_MSLUTSTART_BIT: tcm2130_write_register(TMC2130_REG_MSLUTSTART, tmc2130_reg_mslutstart.reg, false); break;
+		case TMC2130_REG_CHOPCONF_BIT:   tcm2130_write_register(TMC2130_REG_CHOPCONF,   tmc2130_reg_chopconf.reg,   false); break;
+		case TMC2130_REG_COOLCONF_BIT:   tcm2130_write_register(TMC2130_REG_COOLCONF,   tmc2130_reg_coolconf.reg,   false); break;
+		case TMC2130_REG_DCCTRL_BIT:     tcm2130_write_register(TMC2130_REG_DCCTRL,     tmc2130_reg_dcctrl.reg,     false); break;
+		case TMC2130_REG_PWMCONF_BIT:    tcm2130_write_register(TMC2130_REG_PWMCONF,    tmc2130_reg_pwmconf.reg,    false); break;
+		case TMC2130_REG_ENCM_CTRL_BIT:  tcm2130_write_register(TMC2130_REG_ENCM_CTRL,  tmc2130_reg_encm_ctrl.reg,  false); break;
 	}
 }
 
-void tcm2130_handle_register_write(void) {
-	if(tcm2130_register_to_write_mask == 0) {
+void tcm2130_handle_register_read_and_write(void) {
+	if(!tcm2130_is_active) {
 		return;
 	}
 
-	for(uint8_t i = 0; i < TMC2130_NUM_REGS_TO_WRITE; i++) {
-		const uint32_t bit = 1 << i;
-		if(tcm2130_register_to_write_mask & bit) {
-			tcm2130_write_register_by_bit(bit);
-			tcm2130_register_to_write_mask &= ~bit;
+	switch(tcm2130_status) {
+		case TCM2130_STATUS_WRITE: {
+	    	if((USART0->US_CSR & US_CSR_TXBUFE)  &&
+	    	   (USART0->US_CSR & US_CSR_ENDTX)  &&
+	    	   (USART0->US_CSR & US_CSR_RXBUFF) &&
+	    	   (USART0->US_CSR & US_CSR_ENDRX)) {
+
+	    		// Write is done, we can go back to idle
+	    		tcm2130_status = TCM2130_STATUS_IDLE;
+	    		tcm2130_deselect();
+	    		return;
+	    	}
+
+	    	break;
+		}
+
+		case TCM2130_STATUS_READ_WRITE_REG: {
+	    	if((USART0->US_CSR & US_CSR_TXBUFE)  &&
+	    	   (USART0->US_CSR & US_CSR_ENDTX)  &&
+	    	   (USART0->US_CSR & US_CSR_RXBUFF) &&
+	    	   (USART0->US_CSR & US_CSR_ENDRX)) {
+
+	    		tcm2130_status = TCM2130_STATUS_READ_WRITE_REG_NEXT;
+				tcm2130_deselect();
+	    		return;
+	    	}
+			break;
+		}
+
+		case TCM2130_STATUS_READ_WRITE_REG_NEXT: {
+			tcm2130_read_register_by_bit(tcm2130_current_read_bit);
 			return;
 		}
+
+		case TCM2130_STATUS_READ: {
+	    	if((USART0->US_CSR & US_CSR_TXBUFE)  &&
+	    	   (USART0->US_CSR & US_CSR_ENDTX)  &&
+	    	   (USART0->US_CSR & US_CSR_RXBUFF) &&
+	    	   (USART0->US_CSR & US_CSR_ENDRX)) {
+
+	    		tcm2130_read_register_by_bit(tcm2130_current_read_bit);
+				tcm2130_status = TCM2130_STATUS_IDLE;
+				tcm2130_deselect();
+	    		return;
+	    	}
+			break;
+		}
+
+		case TCM2130_STATUS_IDLE: {
+			if(tcm2130_register_to_write_mask != 0) {
+				for(uint8_t i = 0; i < TMC2130_NUM_REGS_TO_WRITE; i++) {
+					const uint32_t bit = 1 << i;
+					if(tcm2130_register_to_write_mask & bit) {
+						tcm2130_write_register_by_bit(bit);
+						tcm2130_register_to_write_mask &= ~bit;
+						return;
+					}
+				}
+			}
+			if(tcm2130_register_to_read_mask != 0) {
+				for(uint8_t i = 0; i < TMC2130_NUM_REGS_TO_READ; i++) {
+					const uint32_t bit = 1 << i;
+					if(tcm2130_register_to_read_mask & bit) {
+						tcm2130_read_register_by_bit(bit);
+						tcm2130_register_to_read_mask &= ~bit;
+						return;
+					}
+				}
+			}
+
+			break;
+		}
+
+		default: {
+			logw("Unreachable tcm2130 status: %d\n\r", tcm2130_status);
+			break;
+		}
+	}
+
+}
+
+void tcm2130_update_read_registers(void) {
+	if(tcm2130_is_active) {
+		tcm2130_register_to_read_mask = TMC2130_REG_DRV_STATUS_BIT | TMC2130_REG_PWM_SCALE_BIT;
 	}
 }
 
@@ -555,7 +675,7 @@ void tcm2130_print_current_state(void) {
 
 	printf("TCM2130 state:\n\r");
 	for(uint8_t i = 0; i < sizeof(regs); i++) {
-		uint32_t value = tcm2130_read_register(regs[i]);
+		uint32_t value = tcm2130_read_register(regs[i], true);
 		printf(" * Reg %x: %lx\n\r", regs[i], value);
 	}
 	printf("\n\r");

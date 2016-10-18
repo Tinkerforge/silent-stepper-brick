@@ -28,7 +28,7 @@
 
 #define BRICK_FIRMWARE_VERSION_MAJOR 2
 #define BRICK_FIRMWARE_VERSION_MINOR 0
-#define BRICK_FIRMWARE_VERSION_REVISION 1
+#define BRICK_FIRMWARE_VERSION_REVISION 0
 
 #define BRICK_HARDWARE_VERSION_MAJOR 1
 #define BRICK_HARDWARE_VERSION_MINOR 0
@@ -46,9 +46,9 @@
 //#define PROFILING_TIME 100 // After how many seconds profiling is printed
 
 #define DISABLE_JTAG_ON_STARTUP
-#define LOGGING_SERIAL
-#define LOGGING_LEVEL LOGGING_DEBUG
-//#define LOGGING_LEVEL LOGGING_NONE
+//#define LOGGING_SERIAL
+//#define LOGGING_LEVEL LOGGING_DEBUG
+#define LOGGING_LEVEL LOGGING_NONE
 
 
 // ************** BRICK SETTINGS **************
@@ -120,17 +120,17 @@
 
 
 // SPI
-#define PIN_SPI_MISO        {1 << 12, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
-#define PIN_SPI_MOSI        {1 << 13, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
-#define PIN_SPI_SPCK        {1 << 14, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
+#define PIN_SPI_MISO        {1 << 12, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_SPI_MOSI        {1 << 13, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_SPI_SPCK        {1 << 14, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
 
 #define PINS_SPI            PIN_SPI_MISO, PIN_SPI_MOSI, PIN_SPI_SPCK
 
-#define PIN_SPI_SELECT_SLAVE  {1 << 11, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} //
+#define PIN_SPI_SELECT_SLAVE  {1 << 11, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
 
 // LED
-#define PIN_LED_STD_BLUE    {1 << 10, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
-#define PIN_LED_STD_RED     {1 << 9, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
+#define PIN_LED_STD_BLUE    {1 << 10, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
+#define PIN_LED_STD_RED     {1 << 9, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
 #define PINS_STD_LED        PIN_LED_STD_BLUE, PIN_LED_STD_RED 
 #define PINS_LED            PINS_STD_LED
 
@@ -141,16 +141,16 @@
 // Brick Detect
 // Set low by master
 // TODO: Change name
-#define PIN_DETECT        {1 << 6, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT} //
+#define PIN_DETECT        {1 << 6, PIOB, ID_PIOB, PIO_OUTPUT_0, PIO_DEFAULT}
 
 // ************** INTERRUPT PRIORITIES ***********
-#define PRIORITY_EEPROM_MASTER_TWI0  1
-#define PRIORITY_EEPROM_SLAVE_TWI1   1
+#define PRIORITY_EEPROM_MASTER_TWI0  2
+#define PRIORITY_EEPROM_SLAVE_TWI1   2
 #define PRIORITY_STACK_SLAVE_SPI     5
-#define PRIORITY_PROFILING_TC0       0
-#define PRIORITY_USART_DMA           0
-#define PRIORITY_STEPPER_TC0         6
-#define PRIORITY_STEPPER_TC2         6
+#define PRIORITY_PROFILING_TC0       1
+#define PRIORITY_USART_DMA           1
+#define PRIORITY_STEPPER_TC0         4
+#define PRIORITY_STEPPER_TC2         4
 
 // ************** BRICKLET SETTINGS **************
 
@@ -161,20 +161,20 @@
 #define BRICKLET_A_ADDRESS 84
 #define BRICKLET_A_ADC_CHANNEL 4
 
-#define BRICKLET_A_PIN_1_AD   {1 << 0, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
-#define BRICKLET_A_PIN_2_DA   {1 << 2, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
-#define BRICKLET_A_PIN_3_PWM  {1 << 0, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
-#define BRICKLET_A_PIN_4_IO   {1 << 25, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_A_PIN_1_AD   {1 << 0, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_A_PIN_2_DA   {1 << 2, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_A_PIN_3_PWM  {1 << 0, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_A_PIN_4_IO   {1 << 25, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
 #define BRICKLET_A_PIN_SELECT {0, 0, 0, 0, 0}
 
 // BRICKLET B
 #define BRICKLET_B_ADDRESS 80
 #define BRICKLET_B_ADC_CHANNEL 5
 
-#define BRICKLET_B_PIN_1_AD   {1 << 1, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
-#define BRICKLET_B_PIN_2_DA   {1 << 3, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT} //
-#define BRICKLET_B_PIN_3_PWM  {1 << 1, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
-#define BRICKLET_B_PIN_4_IO   {1 << 16, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT} //
+#define BRICKLET_B_PIN_1_AD   {1 << 1, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_B_PIN_2_DA   {1 << 3, PIOB, ID_PIOB, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_B_PIN_3_PWM  {1 << 1, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
+#define BRICKLET_B_PIN_4_IO   {1 << 16, PIOA, ID_PIOA, PIO_INPUT, PIO_DEFAULT}
 #define BRICKLET_B_PIN_SELECT {0, 0, 0, 0, 0}
 
 // *************** STEPPER DEBUGGING **************
@@ -195,21 +195,18 @@
 
 
 // *************** TMC2130 PINS ***************
-#define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
-#define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} //
-#define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} //
-#define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT} //
+#define PIN_ENABLE      {1 << 23, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT}
+#define PIN_STEP        {1 << 15, PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
+#define PIN_DIRECTION   {1 << 28, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT}
+#define PIN_VREF        {1 << 13, PIOB, ID_PIOB, PIO_INPUT,    PIO_DEFAULT}
 
-//#define PIN_CLK         {1 << 27, PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} // use external clock (TC)
-#define PIN_CLK         {1 << 17, PIOA, ID_PIOA, PIO_PERIPH_C, PIO_DEFAULT} // use external clock (PWM)
-#define PIN_PWR_SW_3V3  {1 << 8,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT} // enable 3V3
+#define PIN_CLK         {1 << 17, PIOA, ID_PIOA, PIO_PERIPH_C, PIO_DEFAULT}
+#define PIN_PWR_SW_3V3  {1 << 8,  PIOA, ID_PIOA, PIO_OUTPUT_1, PIO_DEFAULT}
 
-#define PIN_PWR_SDO     {1 << 5,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} // SDO_CFG0 chopper off time default
-#define PIN_PWR_SDI     {1 << 6,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} // SDI_CFG1, set 16 uSteps, stealth
-#define PIN_PWR_SCK     {1 << 2,  PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT} // SCK_CFG2, set 16 uSteps, stealth
-#define PIN_PWR_CS      {1 << 7,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT} // CS_CFG3, Current Setting external sense resistors with analog input enabled
-//#define PIN_CFG4     	{1 << 17, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCEN_CFG4, set chopper hysteresis default
-//#define PIN_CFG5       	{1 << 24, PIOA, ID_PIOA, PIO_OUTPUT_0, PIO_DEFAULT} // DCIN_CFG5, set chopper blank time best for stealth
+#define PIN_PWR_SDO     {1 << 5,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_PWR_SDI     {1 << 6,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_PWR_SCK     {1 << 2,  PIOA, ID_PIOA, PIO_PERIPH_B, PIO_DEFAULT}
+#define PIN_PWR_CS      {1 << 7,  PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
 #define PIN_DIAG1       {1 << 30, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP}  // DIAG1, Index
 #define PIN_DIAG0       {1 << 31, PIOA, ID_PIOA, PIO_INPUT,    PIO_PULLUP}  // DIAG0, Error
 
@@ -224,20 +221,15 @@
 #define PWR_SDI        1 // SPI Data Input
 #define PWR_SCK        2 // SPI serial clock input
 #define PWR_CS         3 // SPI chip select input (negative active)
-//#define CFG_4          4 // dcStep enable input (SPI_MODE=1) - tie to GND for normal operation (no dcStep)
-//#define CFG_5          5 // dcStep gating input for axis synchronization (SPI_MODE=1)
 #define CFG_DIAG1      4 // Diagnostic Outputs
 #define CFG_DIAG0      5 //     "        "
-#define PWR_SW_3V3     6 // *
-#define PWR_CLK        7 // *
-#define PWR_ENABLE     8 // *
-#define PWR_STEP       9 // * ToDo
-#define PWR_DIRECTION 10 // *
-#define PWR_VREF      11 // *
+#define PWR_SW_3V3     6 // 3.3 enable
+#define PWR_CLK        7 // External clock (12.8MHz through PWM)
+#define PWR_ENABLE     8 // Driver enable
+#define PWR_STEP       9 // Steps (high->low and low->high are each a step)
+#define PWR_DIRECTION 10 // Direction of steps
+#define PWR_VREF      11 // VREF input
 
-//#define CFG_DCO        14 // dcStep ready output
-//ToDo: dcStep DCO Pin for load dependet speed control -> Page 3 (datasheet)
-//#define CFG_SPI_MODE   15 // SPI mode selector =1 when activated
 
 // ************** POWER MANAGEMENT **************
 #define VOLTAGE_MAX_VALUE 4095
@@ -269,7 +261,7 @@
 #define STEPPER_CURRENT_CHANNEL 1
 #define STEPPER_CURRENT_MULTIPLIER 2
 #define STEPPER_CURRENT_REFERENCE 3300
-#define STEPPER_CURRENT_PIN {1 << 18, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN} //????? gibt es nicht mehr!
+#define STEPPER_CURRENT_PIN {1 << 18, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN}
 
 // 15: 0.012 Ohm Resistor
 // 1/6: Minimum value for DAC

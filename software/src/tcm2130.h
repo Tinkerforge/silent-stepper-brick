@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define TCP2130_CLOCK_FREQUENCY ((uint32_t)1280000) // 12.8MHz supplied by external clock (PWM with period 5, duty cycle 2 @mck)
+#define TCP2130_CLOCK_FREQUENCY ((uint32_t)12800000) // 12.8MHz supplied by external clock (PWM with period 5, duty cycle 2 @mck)
 
 // ****************** TCM2130 REGISTERS *****************
 // R is read-only / W is write-only / R+C is clear upon read
@@ -101,7 +101,13 @@
 #define TMC2130_REG_PWMCONF_BIT     (1 << 21)
 #define TMC2130_REG_ENCM_CTRL_BIT   (1 << 22)
 
+#define TMC2130_REG_GSTAT_BIT       (1 << 0)
+#define TMC2130_REG_TSTEP_BIT       (1 << 1)
+#define TMC2130_REG_DRV_STATUS_BIT  (1 << 2)
+#define TMC2130_REG_PWM_SCALE_BIT   (1 << 3)
+
 #define TMC2130_NUM_REGS_TO_WRITE   23
+#define TMC2130_NUM_REGS_TO_READ    4
 
 typedef union {
   struct {
@@ -155,9 +161,9 @@ typedef union {
 typedef union {
   struct {
     uint32_t ihold:5;
-    uint32_t :4;
+    uint32_t :3;
     uint32_t irun:5;
-    uint32_t :4;
+    uint32_t :3;
     uint32_t ihold_delay:4;
   } bit;
   uint32_t reg;
@@ -253,7 +259,7 @@ typedef union {
 typedef union {
   struct {
     uint32_t cuar_a:9;
-    uint32_t :8;
+    uint32_t :7;
     uint32_t cuar_b:9;
   } bit;
   uint32_t reg;
@@ -365,10 +371,11 @@ typedef union {
 void tcm2130_select(void);
 void tcm2130_deselect(void);
 uint8_t tcm2130_spi_transceive_byte(const uint8_t value);
-void tcm2130_write_register(const uint8_t address, const uint32_t value);
-uint32_t tcm2130_read_register(const uint8_t address);
+void tcm2130_write_register(const uint8_t address, const uint32_t value, bool busy_waiting);
+uint32_t tcm2130_read_register(const uint8_t address, const bool busy_waiting);
 void tcm2130_set_active(const bool active);
-void tcm2130_handle_register_write(void);
+void tcm2130_handle_register_read_and_write(void);
 void tcm2130_print_current_state(void);
+void tcm2130_update_read_registers(void);
 
 #endif

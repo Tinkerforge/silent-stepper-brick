@@ -205,7 +205,7 @@ void set_step_configuration(const ComType com, const SetStepConfiguration *data)
 	tmc2130_reg_chopconf.bit.intpol = data->interpolation;
 
 	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
-	tcm2130_handle_register_write();
+	tcm2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -340,7 +340,7 @@ void set_basic_configuration(const ComType com, const SetBasicConfiguration *dat
 	tmc2130_reg_chopconf.bit.vhighchm     = data->high_velocity_chopper_mode;
 
 	tcm2130_register_to_write_mask |= (TMC2130_REG_IHOLD_IRUN_BIT | TMC2130_REG_TPOWERDOWN_BIT | TMC2130_REG_TPWMTHRS_BIT | TMC2130_REG_TCOOLTHRS_BIT | TMC2130_REG_THIGH_BIT | TMC2130_REG_CHOPCONF_BIT);
-	tcm2130_handle_register_write();
+	tcm2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -390,7 +390,7 @@ void set_spreadcycle_configuration(const ComType com, const SetSpreadcycleConfig
 	tmc2130_reg_chopconf.bit.disfdcc   = data->fast_decay_without_comperator;
 
 	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
-	tcm2130_handle_register_write();
+	tcm2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -434,7 +434,7 @@ void set_stealth_configuration(const ComType com, const SetStealthConfiguration 
 	tmc2130_reg_pwmconf.bit.freewheel     = data->freewheel_mode;
 
 	tcm2130_register_to_write_mask |= (TMC2130_REG_GCONF_BIT | TMC2130_REG_PWMCONF_BIT);
-	tcm2130_handle_register_write();
+	tcm2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -475,7 +475,7 @@ void set_coolstep_configuration(const ComType com, const SetCoolstepConfiguratio
 	tmc2130_reg_coolconf.bit.sfilt  = data->stallguard_mode;
 
 	tcm2130_register_to_write_mask |= TMC2130_REG_COOLCONF_BIT;
-	tcm2130_handle_register_write();
+	tcm2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -506,7 +506,7 @@ void set_misc_configuration(const ComType com, const SetMiscConfiguration *data)
 	tmc2130_reg_chopconf.bit.sync   = data->synchronize_phase_frequency;
 
 	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
-	tcm2130_handle_register_write();
+	tcm2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -520,6 +520,29 @@ void get_misc_configuration(const ComType com, const GetMiscConfiguration *data)
 	gmcr.synchronize_phase_frequency        = tmc2130_reg_chopconf.bit.sync;
 
 	send_blocking_with_timeout(&gmcr, sizeof(GetMiscConfigurationReturn), com);
+}
+
+void get_driver_status(const ComType com, const GetDriverStatus *data) {
+	GetDriverStatusReturn gdsr;
+
+	gdsr.header                    = data->header;
+	gdsr.header.length             = sizeof(GetDriverStatusReturn);
+	gdsr.open_load                 = (tmc2130_reg_drv_status.bit.ola << 0) | (tmc2130_reg_drv_status.bit.olb << 1);
+	gdsr.short_to_ground           = (tmc2130_reg_drv_status.bit.s2ga << 0) | (tmc2130_reg_drv_status.bit.s2gb << 1);
+	gdsr.over_temperature          = 0;
+	if(tmc2130_reg_drv_status.bit.otpw) {
+		gdsr.over_temperature      = 1;
+	}
+	if(tmc2130_reg_drv_status.bit.ot) {
+		gdsr.over_temperature      = 2;
+	}
+	gdsr.motor_stalled             = tmc2130_reg_drv_status.bit.stall_guard;
+	gdsr.actual_motor_current      = tmc2130_reg_drv_status.bit.cs_actual;
+	gdsr.full_step_active          = tmc2130_reg_drv_status.bit.fsactive;
+	gdsr.stallguard_result         = tmc2130_reg_drv_status.bit.sg_result;
+	gdsr.stealth_voltage_amplitude = tmc2130_reg_pwm_scale.bit.amplitude_scalar;
+
+	send_blocking_with_timeout(&gdsr, sizeof(GetDriverStatusReturn), com);
 }
 
 void set_minimum_voltage(const ComType com, const SetMinimumVoltage *data) {

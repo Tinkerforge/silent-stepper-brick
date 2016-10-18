@@ -66,15 +66,16 @@
 #define FID_GET_MISC_CONFIGURATION 36
 #define FID_SET_MINIMUM_VOLTAGE 37
 #define FID_GET_MINIMUM_VOLTAGE 38
-#define FID_UNDER_VOLTAGE 39
-#define FID_POSITION_REACHED 40
-#define FID_SET_TIME_BASE 41
-#define FID_GET_TIME_BASE 42
-#define FID_GET_ALL_DATA 43
-#define FID_SET_ALL_DATA_PERIOD 44
-#define FID_GET_ALL_DATA_PERIOD 45
-#define FID_ALL_DATA 46
-#define FID_NEW_STATE 47
+#define FID_GET_DRIVER_STATUS 39
+#define FID_UNDER_VOLTAGE 40
+#define FID_POSITION_REACHED 41
+#define FID_SET_TIME_BASE 42
+#define FID_GET_TIME_BASE 43
+#define FID_GET_ALL_DATA 44
+#define FID_SET_ALL_DATA_PERIOD 45
+#define FID_GET_ALL_DATA_PERIOD 46
+#define FID_ALL_DATA 47
+#define FID_NEW_STATE 48
 
 #define COM_MESSAGES_USER \
 	{FID_SET_MAX_VELOCITY, (message_handler_func_t)set_max_velocity}, \
@@ -113,6 +114,7 @@
 	{FID_GET_COOLSTEP_CONFIGURATION, (message_handler_func_t)get_coolstep_configuration}, \
 	{FID_SET_MISC_CONFIGURATION, (message_handler_func_t)set_misc_configuration}, \
 	{FID_GET_MISC_CONFIGURATION, (message_handler_func_t)get_misc_configuration}, \
+	{FID_GET_DRIVER_STATUS, (message_handler_func_t)get_driver_status}, \
 	{FID_SET_MINIMUM_VOLTAGE, (message_handler_func_t)set_minimum_voltage}, \
 	{FID_GET_MINIMUM_VOLTAGE, (message_handler_func_t)get_minimum_voltage}, \
 	{FID_UNDER_VOLTAGE, (message_handler_func_t)NULL}, \
@@ -432,6 +434,22 @@ typedef struct {
 
 typedef struct {
 	MessageHeader header;
+} __attribute__((__packed__)) GetDriverStatus;
+
+typedef struct {
+	MessageHeader header;
+	uint8_t open_load;
+	uint8_t short_to_ground;
+	uint8_t over_temperature;
+	bool motor_stalled;
+	uint8_t actual_motor_current;
+	bool full_step_active;
+	uint8_t stallguard_result;
+	uint8_t stealth_voltage_amplitude;
+} __attribute__((__packed__)) GetDriverStatusReturn;
+
+typedef struct {
+	MessageHeader header;
 	uint16_t voltage;
 } __attribute__((__packed__)) SetMinimumVoltage;
 
@@ -550,6 +568,7 @@ void set_coolstep_configuration(const ComType com, const SetCoolstepConfiguratio
 void get_coolstep_configuration(const ComType com, const GetCoolstepConfiguration *data);
 void set_misc_configuration(const ComType com, const SetMiscConfiguration *data);
 void get_misc_configuration(const ComType com, const GetMiscConfiguration *data);
+void get_driver_status(const ComType com, const GetDriverStatus *data);
 void enable(const ComType com, const Enable *data);
 void disable(const ComType com, const Disable *data);
 void is_enabled(const ComType com, const IsEnabled *data);
