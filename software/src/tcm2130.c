@@ -385,6 +385,7 @@ void tcm2130_spi_init(void) {
     NVIC_SetPriority(USART0_IRQn, PRIORITY_USART_DMA);
     NVIC_EnableIRQ(USART0_IRQn);
 
+    tcm2130_status = TCM2130_STATUS_IDLE;
 	SLEEP_US(10);
 	tcm2130_write_register(TMC2130_REG_IHOLD_IRUN, tmc2130_reg_ihold_run.reg, true);
 	SLEEP_US(10);
@@ -406,14 +407,19 @@ void tcm2130_spi_init(void) {
 	SLEEP_US(10);
 	tcm2130_write_register(TMC2130_REG_CHOPCONF, tmc2130_reg_chopconf.reg, true);
 	SLEEP_US(10);
+
+	// Make sure that motor is enabled after active changed from false to true
+	if(!pin_enable_output_save) {
+		stepper_enable();
+	}
 }
 
 void tcm2130_set_active(const bool active) {
 	if(active == tcm2130_is_active) {
 		return;
 	}
-	tcm2130_is_active = active;
 
+	logd("Set active: %d\n\r", active);
 	if(active) {
 		PIO_Set(&pin_3v3);
 
@@ -452,12 +458,24 @@ void tcm2130_set_active(const bool active) {
 		PWMC_SetDutyCycle(PWM, 3, 2);
 		PWM->PWM_IER1 = PWM_IER1_CHID3;
 
+		// Enable pin is set according to pin_enable_output_save after everything is configured
 		pins_active[PWR_ENABLE].type = PIO_OUTPUT_1;
 		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;
-		pins_active[PWR_STEP].type = PIO_OUTPUT_1;
+
+		if(pin_step_output_save) {
+			pins_active[PWR_STEP].type = PIO_OUTPUT_1;
+		} else {
+			pins_active[PWR_STEP].type = PIO_OUTPUT_0;
+		}
 		pins_active[PWR_STEP].attribute = PIO_DEFAULT;
-		pins_active[PWR_DIRECTION].type = PIO_OUTPUT_0;
+
+		if(pin_direction_output_save) {
+			pins_active[PWR_DIRECTION].type = PIO_OUTPUT_1;
+		} else {
+			pins_active[PWR_DIRECTION].type = PIO_OUTPUT_0;
+		}
 		pins_active[PWR_DIRECTION].attribute = PIO_DEFAULT;
+
 		pins_active[PWR_VREF].type = PIO_INPUT;
 		pins_active[PWR_VREF].attribute = PIO_DEFAULT;
 
@@ -484,8 +502,13 @@ void tcm2130_set_active(const bool active) {
 		while(!(PWM->PWM_SR & (1 << 3))); // Wait for PWM to be active
 
 		tcm2130_spi_init();
+		tcm2130_is_active = true;
 	} else {
+		tcm2130_is_active = false;
 		PIO_Clear(&pin_3v3);
+		pin_enable_output_save = PIO_Get(&pins_active[PWR_ENABLE]);
+		pin_step_output_save = PIO_Get(&pins_active[PWR_STEP]);
+		pin_direction_output_save = PIO_Get(&pins_active[PWR_DIRECTION]);
 
 		pins_active[PWR_ENABLE].type =  PIO_INPUT;
 		pins_active[PWR_ENABLE].attribute = PIO_DEFAULT;
@@ -521,6 +544,8 @@ void tcm2130_set_active(const bool active) {
 		// Disable receiver and transmitter
 		USART0->US_CR = US_CR_TXDIS;
 		USART0->US_CR = US_CR_RXDIS;
+
+		stepper_disable();
 
 		tcm2130_status = TCM2130_STATUS_IDLE;
 	}
