@@ -247,6 +247,7 @@ void tcm2130_select(void) {
 void tcm2130_deselect(void) {
    	SLEEP_NS(250);
 	USART0->US_CR |= US_CR_RTSDIS;
+	USART0->US_PTCR = US_PTCR_TXTDIS | US_PTCR_RXTDIS;
 }
 
 uint8_t tcm2130_spi_transceive_byte(const uint8_t value) {
