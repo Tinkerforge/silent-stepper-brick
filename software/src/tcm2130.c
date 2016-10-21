@@ -38,6 +38,10 @@
 Pin pins_active[] = {PINS_ACTIVE};
 Pin pin_3v3 = PIN_PWR_SW_3V3;
 
+bool pin_enable_output_save = true;
+bool pin_step_output_save = true;
+bool pin_direction_output_save = false;
+
 // Unused registers
 
 // Read Only
