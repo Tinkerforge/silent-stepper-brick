@@ -580,6 +580,12 @@ void tcm2130_handle_register_read_and_write(void) {
 
 	switch(tcm2130_status) {
 		case TCM2130_STATUS_WRITE: {
+			if(USART0->US_CSR & US_CSR_OVRE) {
+				USART0->US_CR = US_CR_RSTSTA;
+				tcm2130_status = TCM2130_STATUS_IDLE;
+				tcm2130_deselect();
+				return;
+			}
 	    	if((USART0->US_CSR & US_CSR_TXBUFE)  &&
 	    	   (USART0->US_CSR & US_CSR_ENDTX)  &&
 	    	   (USART0->US_CSR & US_CSR_RXBUFF) &&
@@ -595,6 +601,12 @@ void tcm2130_handle_register_read_and_write(void) {
 		}
 
 		case TCM2130_STATUS_READ_WRITE_REG: {
+			if(USART0->US_CSR & US_CSR_OVRE) {
+				USART0->US_CR = US_CR_RSTSTA;
+				tcm2130_status = TCM2130_STATUS_IDLE;
+				tcm2130_deselect();
+				return;
+			}
 	    	if((USART0->US_CSR & US_CSR_TXBUFE)  &&
 	    	   (USART0->US_CSR & US_CSR_ENDTX)  &&
 	    	   (USART0->US_CSR & US_CSR_RXBUFF) &&
@@ -613,6 +625,12 @@ void tcm2130_handle_register_read_and_write(void) {
 		}
 
 		case TCM2130_STATUS_READ: {
+			if(USART0->US_CSR & US_CSR_OVRE) {
+				USART0->US_CR = US_CR_RSTSTA;
+				tcm2130_status = TCM2130_STATUS_IDLE;
+				tcm2130_deselect();
+				return;
+			}
 	    	if((USART0->US_CSR & US_CSR_TXBUFE)  &&
 	    	   (USART0->US_CSR & US_CSR_ENDTX)  &&
 	    	   (USART0->US_CSR & US_CSR_RXBUFF) &&
