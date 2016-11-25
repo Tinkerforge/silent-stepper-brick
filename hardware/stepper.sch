@@ -47,9 +47,9 @@ $EndDescr
 Text Notes 550  7700 0    40   ~ 0
 Copyright Tinkerforge GmbH 2016.\nThis documentation describes Open Hardware and is licensed under the\nCERN OHL v. 1.1.\nYou may redistribute and modify this documentation under the terms of the\nCERN OHL v.1.1. (http://ohwr.org/cernohl). This documentation is distributed\nWITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF\nMERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A\nPARTICULAR PURPOSE. Please see the CERN OHL v.1.1 for applicable\nconditions\n
 Wire Wire Line
-	4300 1800 4450 1800
+	4350 2500 4500 2500
 Wire Wire Line
-	3900 1500 3850 1500
+	3950 2200 3900 2200
 Wire Wire Line
 	1700 900  2750 900 
 Wire Wire Line
@@ -57,16 +57,14 @@ Wire Wire Line
 Wire Wire Line
 	1700 3200 2750 3200
 Wire Wire Line
-	1700 3000 2750 3000
-Wire Wire Line
 	1500 6000 2650 6000
 Wire Wire Line
 	1500 4500 2650 4500
 Wire Wire Line
 	1700 1800 2750 1800
-Connection ~ 4850 1500
+Connection ~ 4900 2200
 Wire Wire Line
-	4850 1800 4850 1400
+	4900 2500 4900 2100
 Wire Wire Line
 	9000 4350 9000 3850
 Wire Wire Line
@@ -172,26 +170,26 @@ Wire Wire Line
 Wire Wire Line
 	1700 1200 2750 1200
 Wire Wire Line
-	4300 1500 4450 1500
-NoConn ~ 3900 1700
-NoConn ~ 4300 1700
-NoConn ~ 4300 1600
+	4350 2200 4500 2200
+NoConn ~ 3950 2400
+NoConn ~ 4350 2400
+NoConn ~ 4350 2300
 $Comp
 L R_PACK4 RP101
 U 1 1 4DA406DB
-P 4100 1850
-F 0 "RP101" H 4100 2300 40  0000 C CNN
-F 1 "1k" H 4100 1800 40  0000 C CNN
-F 2 "kicad-libraries:4X0603" H 4100 1850 60  0001 C CNN
-F 3 "" H 4100 1850 60  0001 C CNN
-	1    4100 1850
+P 4150 2550
+F 0 "RP101" H 4150 3000 40  0000 C CNN
+F 1 "1k" H 4150 2500 40  0000 C CNN
+F 2 "kicad-libraries:4X0603" H 4150 2550 60  0001 C CNN
+F 3 "" H 4150 2550 60  0001 C CNN
+	1    4150 2550
 	-1   0    0    -1  
 $EndComp
 Text GLabel 2750 3500 2    60   Input ~ 0
 PWR-DIR
 Text GLabel 2750 2200 2    60   Input ~ 0
 PWR-STEP
-Text GLabel 2750 3000 2    60   Input ~ 0
+Text GLabel 2750 3400 2    60   Input ~ 0
 PWR-ENABLE
 Text GLabel 2650 5900 2    60   Input ~ 0
 PWR-DAC-VREF
@@ -311,12 +309,12 @@ NoConn ~ 6600 5800
 $Comp
 L 3V3 #PWR04
 U 1 1 4CBEA182
-P 4850 1400
-F 0 "#PWR04" H 4850 1500 40  0001 C CNN
-F 1 "3V3" H 4850 1525 40  0000 C CNN
-F 2 "" H 4850 1400 60  0001 C CNN
-F 3 "" H 4850 1400 60  0001 C CNN
-	1    4850 1400
+P 4900 2100
+F 0 "#PWR04" H 4900 2200 40  0001 C CNN
+F 1 "3V3" H 4900 2225 40  0000 C CNN
+F 2 "" H 4900 2100 60  0001 C CNN
+F 3 "" H 4900 2100 60  0001 C CNN
+	1    4900 2100
 	-1   0    0    -1  
 $EndComp
 Text GLabel 2750 2300 2    60   Output ~ 0
@@ -540,23 +538,23 @@ $EndSheet
 $Comp
 L LED D101
 U 1 1 4C3ED8E1
-P 4650 1500
-F 0 "D101" H 4650 1600 50  0000 C CNN
-F 1 "blue" H 4650 1400 50  0000 C CNN
-F 2 "kicad-libraries:D0603" H 4650 1500 60  0001 C CNN
-F 3 "" H 4650 1500 60  0001 C CNN
-	1    4650 1500
+P 4700 2200
+F 0 "D101" H 4700 2300 50  0000 C CNN
+F 1 "blue" H 4700 2100 50  0000 C CNN
+F 2 "kicad-libraries:D0603" H 4700 2200 60  0001 C CNN
+F 3 "" H 4700 2200 60  0001 C CNN
+	1    4700 2200
 	-1   0    0    -1  
 $EndComp
 $Comp
 L LED D102
 U 1 1 4C3ED8B3
-P 4650 1800
-F 0 "D102" H 4650 1900 50  0000 C CNN
-F 1 "red" H 4650 1700 50  0000 C CNN
-F 2 "kicad-libraries:D0603" H 4650 1800 60  0001 C CNN
-F 3 "" H 4650 1800 60  0001 C CNN
-	1    4650 1800
+P 4700 2500
+F 0 "D102" H 4700 2600 50  0000 C CNN
+F 1 "red" H 4700 2400 50  0000 C CNN
+F 2 "kicad-libraries:D0603" H 4700 2500 60  0001 C CNN
+F 3 "" H 4700 2500 60  0001 C CNN
+	1    4700 2500
 	-1   0    0    -1  
 $EndComp
 $Comp
@@ -644,8 +642,8 @@ Wire Wire Line
 	5500 5300 5500 5250
 Connection ~ 4800 4800
 Wire Wire Line
-	3850 1500 3850 1700
-NoConn ~ 3900 1600
+	3900 2200 3900 2400
+NoConn ~ 3950 2300
 $Comp
 L TVS_ARRAY4 U102
 U 1 1 558A71E2
@@ -745,7 +743,7 @@ Text GLabel 2750 3800 2    60   Input ~ 0
 PWR-DIAG0
 Text GLabel 2650 6000 2    60   Output ~ 0
 STACK-INT
-Text GLabel 4050 2400 2    60   Output ~ 0
+Text GLabel 4550 1400 2    60   Output ~ 0
 PWR-CLK
 Text GLabel 2750 900  2    60   Input ~ 0
 PWR-SCK
@@ -758,39 +756,93 @@ Wire Wire Line
 Text Notes 2400 1250 0    60   ~ 0
 USART0
 Wire Wire Line
-	3900 1800 3750 1800
-Wire Wire Line
-	3750 1800 3750 1600
-Wire Wire Line
-	3750 1600 1700 1600
-Wire Wire Line
-	3850 1700 1700 1700
-NoConn ~ 1700 2500
+	1700 2500 3950 2500
 Text GLabel 2750 1500 2    60   Output ~ 0
 PWR-SW-3V3
 Wire Wire Line
 	2750 1500 1700 1500
 Wire Wire Line
 	2750 3600 1700 3600
-Text GLabel 2750 1400 2    60   Output ~ 0
+Text GLabel 2750 1700 2    60   Output ~ 0
 PWR-CS
-Wire Wire Line
-	1700 1400 2750 1400
 $Comp
 L R R105
 U 1 1 57F37DB8
-P 3750 2400
-F 0 "R105" V 3650 2400 50  0000 C CNN
-F 1 "470" V 3750 2400 50  0000 C CNN
-F 2 "kicad-libraries:0402E" H 3750 2400 60  0001 C CNN
-F 3 "" H 3750 2400 60  0001 C CNN
-	1    3750 2400
+P 4250 1400
+F 0 "R105" V 4150 1400 50  0000 C CNN
+F 1 "100" V 4250 1400 50  0000 C CNN
+F 2 "kicad-libraries:0402E" H 4250 1400 60  0001 C CNN
+F 3 "" H 4250 1400 60  0001 C CNN
+	1    4250 1400
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	4050 2400 4000 2400
+	4550 1400 4500 1400
 NoConn ~ 1700 3100
+$Comp
+L C C105
+U 1 1 5837E610
+P 4000 1700
+F 0 "C105" H 4050 1800 50  0000 L CNN
+F 1 "5pF" H 4050 1600 50  0000 L CNN
+F 2 "kicad-libraries:0402E" H 4000 1700 60  0001 C CNN
+F 3 "" H 4000 1700 60  0001 C CNN
+	1    4000 1700
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C106
+U 1 1 5837E806
+P 4500 1700
+F 0 "C106" H 4550 1800 50  0000 L CNN
+F 1 "5pF" H 4550 1600 50  0000 L CNN
+F 2 "kicad-libraries:0402E" H 4500 1700 60  0001 C CNN
+F 3 "" H 4500 1700 60  0001 C CNN
+	1    4500 1700
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR012
+U 1 1 5837E99D
+P 4000 1950
+F 0 "#PWR012" H 4000 1950 30  0001 C CNN
+F 1 "GND" H 4000 1880 30  0001 C CNN
+F 2 "" H 4000 1950 60  0001 C CNN
+F 3 "" H 4000 1950 60  0001 C CNN
+	1    4000 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR013
+U 1 1 5837EA89
+P 4500 1950
+F 0 "#PWR013" H 4500 1950 30  0001 C CNN
+F 1 "GND" H 4500 1880 30  0001 C CNN
+F 2 "" H 4500 1950 60  0001 C CNN
+F 3 "" H 4500 1950 60  0001 C CNN
+	1    4500 1950
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	3500 2400 1700 2400
-NoConn ~ 1700 3400
+	4500 1950 4500 1900
+Wire Wire Line
+	4000 1950 4000 1900
+Wire Wire Line
+	4000 1400 4000 1500
+Wire Wire Line
+	4500 1400 4500 1500
+Connection ~ 4500 1400
+Wire Wire Line
+	1700 1400 4000 1400
+Connection ~ 4000 1400
+NoConn ~ 1700 3000
+Wire Wire Line
+	2750 3400 1700 3400
+Wire Wire Line
+	3900 2400 1700 2400
+Text Notes 5600 2800 0    60   ~ 0
+Changes:\nLEDs\nCS\nCLK\nEnable\n
+Wire Wire Line
+	2750 1700 1700 1700
+NoConn ~ 1700 1600
 $EndSCHEMATC
