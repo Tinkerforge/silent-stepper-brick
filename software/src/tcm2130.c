@@ -254,17 +254,6 @@ void tcm2130_deselect(void) {
 	USART0->US_PTCR = US_PTCR_TXTDIS | US_PTCR_RXTDIS;
 }
 
-uint8_t tcm2130_spi_transceive_byte(const uint8_t value) {
-	// Wait for transfer buffer to be empty
-	while((USART0->US_CSR & US_CSR_TXEMPTY) == 0);
-	USART0->US_THR = value;
-
-	// Wait until receive buffer has new data
-	while((USART0->US_CSR & US_CSR_RXRDY) == 0);
-	return USART0->US_RHR;
-}
-
-
 void tcm2130_write_register(const uint8_t address, const uint32_t value, const bool busy_waiting) {
 	if(tcm2130_status != TCM2130_STATUS_IDLE) {
 		return;
