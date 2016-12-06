@@ -244,13 +244,21 @@ typedef enum {
 TCM2130Status tcm2130_status = TCM2130_STATUS_IDLE;
 
 void tcm2130_select(void) {
-	USART0->US_CR |= US_CR_RTSEN;
+//	USART0->US_CR |= US_CR_RTSEN;
+	Pin pin_cs = PIN_PWR_CS;
+	pin_cs.type = PIO_OUTPUT_0;
+	pin_cs.attribute = PIO_DEFAULT;
+	PIO_Configure(&pin_cs, 1);
     SLEEP_NS(250);
 }
 
 void tcm2130_deselect(void) {
    	SLEEP_NS(250);
-	USART0->US_CR |= US_CR_RTSDIS;
+	Pin pin_cs = PIN_PWR_CS;
+	pin_cs.type = PIO_OUTPUT_1;
+	pin_cs.attribute = PIO_DEFAULT;
+	PIO_Configure(&pin_cs, 1);
+//	USART0->US_CR |= US_CR_RTSDIS;
 	USART0->US_PTCR = US_PTCR_TXTDIS | US_PTCR_RXTDIS;
 }
 
@@ -472,7 +480,7 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_VREF].type = PIO_INPUT;
 		pins_active[PWR_VREF].attribute = PIO_DEFAULT;
 
-		pins_active[PWR_CLK].type = PIO_PERIPH_C;
+		pins_active[PWR_CLK].type = PIO_PERIPH_B;
 		pins_active[PWR_CLK].attribute = PIO_DEFAULT;
 		pins_active[PWR_SW_3V3].type = PIO_OUTPUT_1;
 		pins_active[PWR_SW_3V3].attribute = PIO_DEFAULT;
@@ -480,7 +488,7 @@ void tcm2130_set_active(const bool active) {
 		pins_active[PWR_SDO].type = PIO_PERIPH_A;				// MOSI
 		pins_active[PWR_SDI].type = PIO_PERIPH_A;				// MISO
 		pins_active[PWR_SCK].type = PIO_PERIPH_B;				// Clock
-		pins_active[PWR_CS].type  = PIO_PERIPH_A;	//PIO_OUTPUT_1; //			// Chip Select
+		pins_active[PWR_CS].type  = PIO_OUTPUT_1; //			// Chip Select
 		pins_active[CFG_DIAG0].type = PIO_INPUT;
 		pins_active[CFG_DIAG0].attribute = PIO_PULLUP;
 		pins_active[CFG_DIAG1].type = PIO_INPUT;
@@ -496,6 +504,7 @@ void tcm2130_set_active(const bool active) {
 
 		tcm2130_spi_init();
 		tcm2130_is_active = true;
+
 	} else {
 		tcm2130_is_active = false;
 		PIO_Clear(&pin_3v3);
