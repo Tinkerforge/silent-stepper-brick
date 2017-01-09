@@ -77,6 +77,8 @@
 #define FID_ALL_DATA 47
 #define FID_NEW_STATE 48
 
+#define COM_MESSAGE_USER_LAST_FID 48
+
 #define COM_MESSAGES_USER \
 	{FID_SET_MAX_VELOCITY, (message_handler_func_t)set_max_velocity}, \
 	{FID_GET_MAX_VELOCITY, (message_handler_func_t)get_max_velocity}, \
