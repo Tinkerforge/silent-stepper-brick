@@ -3,7 +3,7 @@
   (general
     (links 416)
     (no_connects 2)
-    (area 125.845139 71.945139 283.420502 165.440043)
+    (area 126.671069 72.726549 166.772591 112.825531)
     (thickness 1.6002)
     (drawings 63)
     (tracks 2681)
@@ -82,7 +82,7 @@
     (grid_origin 126.725 72.775)
     (visible_elements FFFFBFFF)
     (pcbplotparams
-      (layerselection 0x00000_00000008)
+      (layerselection 0x010fc_8000001f)
       (usegerberextensions true)
       (excludeedgelayer true)
       (linewidth 0.150000)
@@ -105,7 +105,7 @@
       (mirror false)
       (drillshape 0)
       (scaleselection 1)
-      (outputdirectory /tmp/stepper/))
+      (outputdirectory /home/batti/tf/production/bricks/Silent_Stepper_1_0))
   )
 
   (net 0 "")
