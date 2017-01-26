@@ -648,15 +648,15 @@ void stepper_disable(void) {
 }
 
 void stepper_set_output_current(const uint16_t current) {
+	// Input goes from 0V to 2.5V, scales linearly
+	// DACC goes from 0.55V to 2.75V
 	const uint16_t new_current = BETWEEN(VREF_MIN_CURRENT,
 	                                     current,
-	                                     VREF_MAX_CURRENT);
+										 VREF_MAX_CURRENT);
 
-	DACC_SetConversionData(DACC, SCALE(new_current,
-	                                   VREF_MIN_CURRENT,
-	                                   VREF_MAX_CURRENT,
-	                                   VOLTAGE_MIN_VALUE,
-	                                   VOLTAGE_MAX_VALUE));
+	const uint16_t scaled_value = SCALE(new_current, VREF_MIN_CURRENT, VREF_MAX_CURRENT, VOLTAGE_MIN_VALUE, 2500*VOLTAGE_MAX_VALUE/VOLTAGE_MAX_DAC);
+	DACC_SetConversionData(DACC, scaled_value);
+
 
 	stepper_output_current = new_current;
 }

@@ -266,6 +266,6 @@
 // 15: 0.012 Ohm Resistor
 // 1/6: Minimum value for DAC
 // 5/6: Maximim value for DAC
-#define VREF_MIN_CURRENT 0
-#define VREF_MAX_CURRENT 1640*3.3/2.5
+#define VREF_MIN_CURRENT 360
+#define VREF_MAX_CURRENT 1640
 
