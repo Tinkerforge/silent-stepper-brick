@@ -360,7 +360,7 @@ void stepper_init(void) {
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
 	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
 
-	tcm2130_set_active(false); // TODO: FIXME: Set to false here!
+	tcm2130_set_active(false);
 	SLEEP_MS(40);
 }
 
