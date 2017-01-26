@@ -143,7 +143,7 @@ TMC2130RegIHOLD_IRUN tmc2130_reg_ihold_run = { // velocity_based_mode_configurat
 
 TMC2130RegTPOWERDOWN tmc2130_reg_tpowerdown = { // velocity_based_mode_configuration
 	.bit = {
-		.delay = 64 // ca 1 second
+		.delay = 48 // ~1 second
 	}
 };
 
