@@ -42,6 +42,18 @@ bool pin_enable_output_save = true;
 bool pin_step_output_save = true;
 bool pin_direction_output_save = false;
 
+// Everything that is different on the wire compared to the register
+// we put in here as a backup for the API getters
+TCM2130HighLevel tcm2130_high_level = {
+	.standstill_current = 200,
+	.motor_run_current = 800,
+	.standstill_delay_time = 0,
+	.power_down_time = 1000,
+	.stealth_threshold = 500,
+	.coolstep_threshold = 500,
+	.classic_threshold = 1000
+};
+
 // Unused registers
 
 // Read Only

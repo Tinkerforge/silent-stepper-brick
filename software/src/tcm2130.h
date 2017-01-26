@@ -109,6 +109,16 @@
 #define TMC2130_NUM_REGS_TO_WRITE   23
 #define TMC2130_NUM_REGS_TO_READ    4
 
+typedef struct {
+	uint16_t standstill_current;
+	uint16_t motor_run_current;
+	uint16_t standstill_delay_time;
+	uint16_t power_down_time;
+	uint16_t stealth_threshold;
+	uint16_t coolstep_threshold;
+	uint16_t classic_threshold;
+} TCM2130HighLevel;
+
 typedef union {
   struct {
     uint32_t i_scale_analog:1;

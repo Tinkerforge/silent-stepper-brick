@@ -312,10 +312,10 @@ typedef struct {
 
 typedef struct {
 	MessageHeader header;
-	uint8_t standstill_current;
-	uint8_t motor_run_current;
-	uint8_t standstill_delay_time;
-	uint8_t power_down_time;
+	uint16_t standstill_current;
+	uint16_t motor_run_current;
+	uint16_t standstill_delay_time;
+	uint16_t power_down_time;
 	uint16_t stealth_threshold;
 	uint16_t coolstep_threshold;
 	uint16_t classic_threshold;
@@ -328,10 +328,10 @@ typedef struct {
 
 typedef struct {
 	MessageHeader header;
-	uint8_t standstill_current;
-	uint8_t motor_run_current;
-	uint8_t standstill_delay_time;
-	uint8_t power_down_time;
+	uint16_t standstill_current;
+	uint16_t motor_run_current;
+	uint16_t standstill_delay_time;
+	uint16_t power_down_time;
 	uint16_t stealth_threshold;
 	uint16_t coolstep_threshold;
 	uint16_t classic_threshold;
