@@ -347,8 +347,8 @@ typedef struct {
 	int8_t hysteresis_end_value;
 	int8_t sinewave_offset;
 	uint8_t chopper_mode;
-	uint8_t comperator_blank_time;
-	bool fast_decay_without_comperator;
+	uint8_t comparator_blank_time;
+	bool fast_decay_without_comparator;
 } __attribute__((__packed__)) SetSpreadcycleConfiguration;
 
 typedef struct {
@@ -364,8 +364,8 @@ typedef struct {
 	int8_t hysteresis_end_value;
 	int8_t sinewave_offset;
 	uint8_t chopper_mode;
-	uint8_t comperator_blank_time;
-	bool fast_decay_without_comperator;
+	uint8_t comparator_blank_time;
+	bool fast_decay_without_comparator;
 } __attribute__((__packed__)) GetSpreadcycleConfigurationReturn;
 
 typedef struct {

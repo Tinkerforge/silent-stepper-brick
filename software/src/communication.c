@@ -400,7 +400,7 @@ void set_spreadcycle_configuration(const ComType com, const SetSpreadcycleConfig
 	   (data->hysteresis_end_value < -3 || data->hysteresis_end_value > 12) ||
 	   (data->sinewave_offset < -3 || data->sinewave_offset > 12) ||
 	   (data->chopper_mode > 1) ||
-	   (data->comperator_blank_time > 3)) {
+	   (data->comparator_blank_time > 3)) {
 		com_return_error(data, sizeof(MessageHeader), MESSAGE_ERROR_CODE_INVALID_PARAMETER, com);
 		return;
 	}
@@ -417,8 +417,8 @@ void set_spreadcycle_configuration(const ComType com, const SetSpreadcycleConfig
 		tmc2130_reg_chopconf.bit.hend  = data->hysteresis_end_value; // TODO: handle signednes correctly!
 	}
 	tmc2130_reg_chopconf.bit.chm       = data->chopper_mode;
-	tmc2130_reg_chopconf.bit.tbl       = data->comperator_blank_time;
-	tmc2130_reg_chopconf.bit.disfdcc   = data->fast_decay_without_comperator;
+	tmc2130_reg_chopconf.bit.tbl       = data->comparator_blank_time;
+	tmc2130_reg_chopconf.bit.disfdcc   = data->fast_decay_without_comparator;
 
 	tmc2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
 	tmc2130_handle_register_read_and_write();
@@ -445,8 +445,8 @@ void get_spreadcycle_configuration(const ComType com, const GetSpreadcycleConfig
 		gscr.hysteresis_end_value      = tmc2130_reg_chopconf.bit.hend;
 	}
 	gscr.chopper_mode                  = tmc2130_reg_chopconf.bit.chm;
-	gscr.comperator_blank_time         = tmc2130_reg_chopconf.bit.tbl;
-	gscr.fast_decay_without_comperator = tmc2130_reg_chopconf.bit.disfdcc;
+	gscr.comparator_blank_time         = tmc2130_reg_chopconf.bit.tbl;
+	gscr.fast_decay_without_comparator = tmc2130_reg_chopconf.bit.disfdcc;
 
 	send_blocking_with_timeout(&gscr, sizeof(GetSpreadcycleConfigurationReturn), com);
 }
