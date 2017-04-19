@@ -1,7 +1,7 @@
 /* silent-stepper-brick
  * Copyright (C) 2015 Olaf Lüke <olaf@tinkerforge.com>
  *
- * tcm2130.h: TCM2130 configuration
+ * tmc2130.h: TMC2130 configuration
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,15 +19,15 @@
  * Boston, MA 02111-1307, USA.
  */
 
-#ifndef TCM2130_H
-#define TCM2130_H
+#ifndef TMC2130_H
+#define TMC2130_H
 
 #include <stdint.h>
 #include <stdbool.h>
 
 #define TCP2130_CLOCK_FREQUENCY ((uint32_t)12800000) // 12.8MHz supplied by external clock (PWM with period 5, duty cycle 2 @mck)
 
-// ****************** TCM2130 REGISTERS *****************
+// ****************** TMC2130 REGISTERS *****************
 // R is read-only / W is write-only / R+C is clear upon read
 
 // General Configuration (0x00...0x0F)
@@ -74,8 +74,8 @@
 #define TMC2130_REG_LOST_STEPS  0x73 // R
 
 #define TMC2130_REG_MSLUT_NUM   8
-#define TCM2130_READ            0
-#define TCM2130_WRITE           0x80
+#define TMC2130_READ            0
+#define TMC2130_WRITE           0x80
 
 #define TMC2130_REG_GCONF_BIT       (1 << 0)
 #define TMC2130_REG_IHOLD_IRUN_BIT  (1 << 1)
@@ -117,7 +117,7 @@ typedef struct {
 	uint16_t stealth_threshold;
 	uint16_t coolstep_threshold;
 	uint16_t classic_threshold;
-} TCM2130HighLevel;
+} TMC2130HighLevel;
 
 typedef union {
   struct {
@@ -378,14 +378,14 @@ typedef union {
   uint32_t reg;
 } TMC2130RegLOST_STEPS;
 
-void tcm2130_select(void);
-void tcm2130_deselect(void);
-uint8_t tcm2130_spi_transceive_byte(const uint8_t value);
-void tcm2130_write_register(const uint8_t address, const uint32_t value, bool busy_waiting);
-uint32_t tcm2130_read_register(const uint8_t address, const bool busy_waiting);
-void tcm2130_set_active(const bool active);
-void tcm2130_handle_register_read_and_write(void);
-void tcm2130_print_current_state(void);
-void tcm2130_update_read_registers(void);
+void tmc2130_select(void);
+void tmc2130_deselect(void);
+uint8_t tmc2130_spi_transceive_byte(const uint8_t value);
+void tmc2130_write_register(const uint8_t address, const uint32_t value, bool busy_waiting);
+uint32_t tmc2130_read_register(const uint8_t address, const bool busy_waiting);
+void tmc2130_set_active(const bool active);
+void tmc2130_handle_register_read_and_write(void);
+void tmc2130_print_current_state(void);
+void tmc2130_update_read_registers(void);
 
 #endif

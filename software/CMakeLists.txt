@@ -89,7 +89,7 @@ SET(SOURCES
 	"${PROJECT_SOURCE_DIR}/src/main.c"
 	"${PROJECT_SOURCE_DIR}/src/silent-stepper.c"
 	"${PROJECT_SOURCE_DIR}/src/communication.c"
-	"${PROJECT_SOURCE_DIR}/src/tcm2130.c"
+	"${PROJECT_SOURCE_DIR}/src/tmc2130.c"
 )
 
 IF(USE_SPI_DMA)

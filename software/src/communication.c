@@ -21,9 +21,8 @@
 
 #include "communication.h"
 
+#include "tmc2130.h"
 #include "silent-stepper.h"
-#include "tcm2130.h"
-
 #include "bricklib/logging/logging.h"
 #include "bricklib/com/com_common.h"
 #include "bricklib/drivers/pwmc/pwmc.h"
@@ -51,9 +50,9 @@ extern int8_t stepper_state;
 extern uint32_t stepper_time_base;
 extern uint32_t stepper_all_data_period;
 
-extern uint32_t tcm2130_register_to_write_mask;
+extern uint32_t tmc2130_register_to_write_mask;
 
-extern TCM2130HighLevel tcm2130_high_level;
+extern TMC2130HighLevel tmc2130_high_level;
 
 extern TMC2130RegGSTAT tmc2130_reg_gstat;
 extern TMC2130RegTSTEP tmc2130_reg_tstep;
@@ -206,8 +205,8 @@ void set_step_configuration(const ComType com, const SetStepConfiguration *data)
 	tmc2130_reg_chopconf.bit.mres   = data->step_resolution;
 	tmc2130_reg_chopconf.bit.intpol = data->interpolation;
 
-	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
-	tcm2130_handle_register_read_and_write();
+	tmc2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -293,10 +292,10 @@ void set_motor_current(const ComType com, const SetMotorCurrent *data) {
 	stepper_set_output_current(data->current);
 
 	// update output current dependent registers
-	tmc2130_reg_ihold_run.bit.ihold = MIN(SCALE(tcm2130_high_level.standstill_current, 0, stepper_output_current, 0, 31), 31);
-	tmc2130_reg_ihold_run.bit.irun  = MIN(SCALE(tcm2130_high_level.motor_run_current, 0, stepper_output_current, 0, 31), 31);
-	tcm2130_register_to_write_mask |= TMC2130_REG_IHOLD_IRUN_BIT;
-	tcm2130_handle_register_read_and_write();
+	tmc2130_reg_ihold_run.bit.ihold = MIN(SCALE(tmc2130_high_level.standstill_current, 0, stepper_output_current, 0, 31), 31);
+	tmc2130_reg_ihold_run.bit.irun  = MIN(SCALE(tmc2130_high_level.motor_run_current, 0, stepper_output_current, 0, 31), 31);
+	tmc2130_register_to_write_mask |= TMC2130_REG_IHOLD_IRUN_BIT;
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -338,13 +337,13 @@ void set_basic_configuration(const ComType com, const SetBasicConfiguration *dat
 		return;
 	}
 
-	tcm2130_high_level.standstill_current    = data->standstill_current;
-	tcm2130_high_level.motor_run_current     = data->motor_run_current;
-	tcm2130_high_level.standstill_delay_time = data->standstill_delay_time;
-	tcm2130_high_level.power_down_time       = data->power_down_time;
-	tcm2130_high_level.stealth_threshold     = data->stealth_threshold;
-	tcm2130_high_level.coolstep_threshold    = data->coolstep_threshold;
-	tcm2130_high_level.classic_threshold     = data->classic_threshold;
+	tmc2130_high_level.standstill_current    = data->standstill_current;
+	tmc2130_high_level.motor_run_current     = data->motor_run_current;
+	tmc2130_high_level.standstill_delay_time = data->standstill_delay_time;
+	tmc2130_high_level.power_down_time       = data->power_down_time;
+	tmc2130_high_level.stealth_threshold     = data->stealth_threshold;
+	tmc2130_high_level.coolstep_threshold    = data->coolstep_threshold;
+	tmc2130_high_level.classic_threshold     = data->classic_threshold;
 
 	tmc2130_reg_ihold_run.bit.ihold       = MIN(SCALE(data->standstill_current, 0, stepper_output_current, 0, 31), 31);
 	tmc2130_reg_ihold_run.bit.irun        = MIN(SCALE(data->motor_run_current, 0, stepper_output_current, 0, 31), 31);
@@ -355,8 +354,18 @@ void set_basic_configuration(const ComType com, const SetBasicConfiguration *dat
 	tmc2130_reg_thigh.bit.velocity        = MIN(TCP2130_CLOCK_FREQUENCY/(data->classic_threshold*256), 0xfffff);
 	tmc2130_reg_chopconf.bit.vhighchm     = data->high_velocity_chopper_mode;
 
-	tcm2130_register_to_write_mask |= (TMC2130_REG_IHOLD_IRUN_BIT | TMC2130_REG_TPOWERDOWN_BIT | TMC2130_REG_TPWMTHRS_BIT | TMC2130_REG_TCOOLTHRS_BIT | TMC2130_REG_THIGH_BIT | TMC2130_REG_CHOPCONF_BIT);
-	tcm2130_handle_register_read_and_write();
+	printf("sb: sc: %d->%d, mrc: %d->%d, sdt %d->%d, pdt %d->%d\n\r",
+	       tmc2130_high_level.standstill_current,
+		   tmc2130_reg_ihold_run.bit.ihold,
+		   tmc2130_high_level.motor_run_current,
+		   tmc2130_reg_ihold_run.bit.irun,
+		   tmc2130_high_level.standstill_delay_time,
+		   tmc2130_reg_ihold_run.bit.ihold_delay,
+		   tmc2130_high_level.power_down_time,
+		   tmc2130_reg_tpowerdown.bit.delay);
+
+	tmc2130_register_to_write_mask |= (TMC2130_REG_IHOLD_IRUN_BIT | TMC2130_REG_TPOWERDOWN_BIT | TMC2130_REG_TPWMTHRS_BIT | TMC2130_REG_TCOOLTHRS_BIT | TMC2130_REG_THIGH_BIT | TMC2130_REG_CHOPCONF_BIT);
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -366,14 +375,20 @@ void get_basic_configuration(const ComType com, const GetBasicConfiguration *dat
 
 	gbcr.header                     = data->header;
 	gbcr.header.length              = sizeof(GetBasicConfigurationReturn);
-	gbcr.standstill_current         = tcm2130_high_level.standstill_current;
-	gbcr.motor_run_current          = tcm2130_high_level.motor_run_current;
-	gbcr.standstill_delay_time      = tcm2130_high_level.standstill_delay_time;
-	gbcr.power_down_time            = tcm2130_high_level.power_down_time;
-	gbcr.stealth_threshold          = tcm2130_high_level.stealth_threshold;
-	gbcr.coolstep_threshold         = tcm2130_high_level.coolstep_threshold;
-	gbcr.classic_threshold          = tcm2130_high_level.classic_threshold;
+	gbcr.standstill_current         = tmc2130_high_level.standstill_current;
+	gbcr.motor_run_current          = tmc2130_high_level.motor_run_current;
+	gbcr.standstill_delay_time      = tmc2130_high_level.standstill_delay_time;
+	gbcr.power_down_time            = tmc2130_high_level.power_down_time;
+	gbcr.stealth_threshold          = tmc2130_high_level.stealth_threshold;
+	gbcr.coolstep_threshold         = tmc2130_high_level.coolstep_threshold;
+	gbcr.classic_threshold          = tmc2130_high_level.classic_threshold;
 	gbcr.high_velocity_chopper_mode = tmc2130_reg_chopconf.bit.vhighchm;
+
+	printf("gb: sc: %d, mrc: %d, sdt: %dd, pdt: %d\n\r",
+	       tmc2130_high_level.standstill_current,
+		   tmc2130_high_level.motor_run_current,
+		   tmc2130_high_level.standstill_delay_time,
+		   tmc2130_high_level.power_down_time);
 
 	send_blocking_with_timeout(&gbcr, sizeof(GetBasicConfigurationReturn), com);
 }
@@ -405,8 +420,8 @@ void set_spreadcycle_configuration(const ComType com, const SetSpreadcycleConfig
 	tmc2130_reg_chopconf.bit.tbl       = data->comperator_blank_time;
 	tmc2130_reg_chopconf.bit.disfdcc   = data->fast_decay_without_comperator;
 
-	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
-	tcm2130_handle_register_read_and_write();
+	tmc2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -449,8 +464,8 @@ void set_stealth_configuration(const ComType com, const SetStealthConfiguration 
 	tmc2130_reg_pwmconf.bit.pwm_symmetric = data->force_symmetric;
 	tmc2130_reg_pwmconf.bit.freewheel     = data->freewheel_mode;
 
-	tcm2130_register_to_write_mask |= (TMC2130_REG_GCONF_BIT | TMC2130_REG_PWMCONF_BIT);
-	tcm2130_handle_register_read_and_write();
+	tmc2130_register_to_write_mask |= (TMC2130_REG_GCONF_BIT | TMC2130_REG_PWMCONF_BIT);
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -490,8 +505,8 @@ void set_coolstep_configuration(const ComType com, const SetCoolstepConfiguratio
 	tmc2130_reg_coolconf.bit.sgt    = data->stallguard_threshold_value;
 	tmc2130_reg_coolconf.bit.sfilt  = data->stallguard_mode;
 
-	tcm2130_register_to_write_mask |= TMC2130_REG_COOLCONF_BIT;
-	tcm2130_handle_register_read_and_write();
+	tmc2130_register_to_write_mask |= TMC2130_REG_COOLCONF_BIT;
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }
@@ -521,8 +536,8 @@ void set_misc_configuration(const ComType com, const SetMiscConfiguration *data)
 	tmc2130_reg_chopconf.bit.diss2g = data->disable_short_to_ground_protection;
 	tmc2130_reg_chopconf.bit.sync   = data->synchronize_phase_frequency;
 
-	tcm2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
-	tcm2130_handle_register_read_and_write();
+	tmc2130_register_to_write_mask |= TMC2130_REG_CHOPCONF_BIT;
+	tmc2130_handle_register_read_and_write();
 
 	com_return_setter(com, data);
 }

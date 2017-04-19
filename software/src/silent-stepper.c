@@ -22,11 +22,10 @@
 #include "silent-stepper.h"
 
 #include <stdio.h>
+#include "tmc2130.h"
 
 #include "config.h"
 #include "communication.h"
-#include "tcm2130.h"
-
 #include "bricklib/com/com.h"
 #include "bricklib/com/com_common.h"
 #include "bricklib/logging/logging.h"
@@ -253,11 +252,11 @@ void tick_task(const uint8_t tick_type) {
 	static int8_t message_counter = 0;
 
 	if(tick_type == TICK_TASK_TYPE_CALCULATION) {
-		tcm2130_handle_register_read_and_write();
+		tmc2130_handle_register_read_and_write();
 
 		stepper_tick_read_counter++;
 		if(stepper_tick_read_counter >= STEPPER_READ_REGISTER_PERIOD) {
-			tcm2130_update_read_registers();
+			tmc2130_update_read_registers();
 			stepper_tick_read_counter = 0;
 		}
 
@@ -278,9 +277,9 @@ void tick_task(const uint8_t tick_type) {
 
 		// Power TMC2130 if external or stack voltage is connected and above voltage minimum
 		if((stepper_get_external_voltage() > STEPPER_VOLTAGE_EPSILON) || (stepper_get_stack_voltage() > STEPPER_VOLTAGE_EPSILON)) {
-			tcm2130_set_active(true);
+			tmc2130_set_active(true);
 		} else {
-			tcm2130_set_active(false);
+			tmc2130_set_active(false);
 		}
 
 		stepper_all_data_period_counter++;
@@ -360,8 +359,9 @@ void stepper_init(void) {
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
 	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
 
-	tcm2130_set_active(false);
+	tmc2130_set_active(false);
 	SLEEP_MS(40);
+
 }
 
 
@@ -657,6 +657,7 @@ void stepper_set_output_current(const uint16_t current) {
 	const uint16_t scaled_value = SCALE(new_current, VREF_MIN_CURRENT, VREF_MAX_CURRENT, VOLTAGE_MIN_VALUE, 2500*VOLTAGE_MAX_VALUE/VOLTAGE_MAX_DAC);
 	DACC_SetConversionData(DACC, scaled_value);
 
+	printf("soc: %d -> %d\n\r", current, scaled_value);
 
 	stepper_output_current = new_current;
 }
