@@ -657,8 +657,6 @@ void stepper_set_output_current(const uint16_t current) {
 	const uint16_t scaled_value = SCALE(new_current, VREF_MIN_CURRENT, VREF_MAX_CURRENT, VOLTAGE_MIN_VALUE, 2500*VOLTAGE_MAX_VALUE/VOLTAGE_MAX_DAC);
 	DACC_SetConversionData(DACC, scaled_value);
 
-	printf("soc: %d -> %d\n\r", current, scaled_value);
-
 	stepper_output_current = new_current;
 }
 

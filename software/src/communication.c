@@ -354,16 +354,6 @@ void set_basic_configuration(const ComType com, const SetBasicConfiguration *dat
 	tmc2130_reg_thigh.bit.velocity        = MIN(TCP2130_CLOCK_FREQUENCY/(data->classic_threshold*256), 0xfffff);
 	tmc2130_reg_chopconf.bit.vhighchm     = data->high_velocity_chopper_mode;
 
-	printf("sb: sc: %d->%d, mrc: %d->%d, sdt %d->%d, pdt %d->%d\n\r",
-	       tmc2130_high_level.standstill_current,
-		   tmc2130_reg_ihold_run.bit.ihold,
-		   tmc2130_high_level.motor_run_current,
-		   tmc2130_reg_ihold_run.bit.irun,
-		   tmc2130_high_level.standstill_delay_time,
-		   tmc2130_reg_ihold_run.bit.ihold_delay,
-		   tmc2130_high_level.power_down_time,
-		   tmc2130_reg_tpowerdown.bit.delay);
-
 	tmc2130_register_to_write_mask |= (TMC2130_REG_IHOLD_IRUN_BIT | TMC2130_REG_TPOWERDOWN_BIT | TMC2130_REG_TPWMTHRS_BIT | TMC2130_REG_TCOOLTHRS_BIT | TMC2130_REG_THIGH_BIT | TMC2130_REG_CHOPCONF_BIT);
 	tmc2130_handle_register_read_and_write();
 
@@ -383,12 +373,6 @@ void get_basic_configuration(const ComType com, const GetBasicConfiguration *dat
 	gbcr.coolstep_threshold         = tmc2130_high_level.coolstep_threshold;
 	gbcr.classic_threshold          = tmc2130_high_level.classic_threshold;
 	gbcr.high_velocity_chopper_mode = tmc2130_reg_chopconf.bit.vhighchm;
-
-	printf("gb: sc: %d, mrc: %d, sdt: %dd, pdt: %d\n\r",
-	       tmc2130_high_level.standstill_current,
-		   tmc2130_high_level.motor_run_current,
-		   tmc2130_high_level.standstill_delay_time,
-		   tmc2130_high_level.power_down_time);
 
 	send_blocking_with_timeout(&gbcr, sizeof(GetBasicConfigurationReturn), com);
 }
