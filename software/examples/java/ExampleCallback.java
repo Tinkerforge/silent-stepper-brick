@@ -2,6 +2,7 @@ import java.util.Random;
 
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.BrickSilentStepper;
+import com.tinkerforge.TinkerforgeException;
 
 public class ExampleCallback {
 	private static final String HOST = "localhost";

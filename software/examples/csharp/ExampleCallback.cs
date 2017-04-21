@@ -7,6 +7,8 @@ class Example
 	private static int PORT = 4223;
 	private static string UID = "XXYYZZ"; // Change XXYYZZ to the UID of your Silent Stepper Brick
 
+	private static Random random = new Random();
+
 	// Use position reached callback to program random movement
 	static void PositionReachedCB(BrickSilentStepper sender, int position)
 	{
