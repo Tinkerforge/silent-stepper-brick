@@ -1,0 +1,30 @@
+Needs["NETLink`"]
+LoadNETAssembly["Tinkerforge",NotebookDirectory[]<>"../../.."]
+
+host="localhost"
+port=4223
+uid="XXYYZZ"(*Change XXYYZZ to the UID of your Silent Stepper Brick*)
+
+(*Create IPConnection and device object*)
+ipcon=NETNew["Tinkerforge.IPConnection"]
+ss=NETNew["Tinkerforge.BrickSilentStepper",uid,ipcon]
+ipcon@Connect[host,port]
+
+ss@SetMotorCurrent[800](*800mA*)
+ss@SetStepConfiguration[BrickSilentStepper`STEPURESOLUTIONU8,True](*1/8 steps (interpolated)*)
+ss@SetMaxVelocity[2000](*Velocity 2000 steps/s*)
+
+(*Slow acceleration (500 steps/s^2),*)
+(*Fast deacceleration (5000 steps/s^2)*)
+ss@SetSpeedRamping[500,5000]
+
+ss@Enable[](*Enable motor power*)
+ss@SetSteps[60000](*Drive 60000 steps forward*)
+
+Input["Click OK to exit"]
+
+(*Clean up*)
+ss@Disable[]
+ipcon@Disconnect[]
+ReleaseNETObject[ss]
+ReleaseNETObject[ipcon]
