@@ -28,7 +28,7 @@
 
 #define BRICK_FIRMWARE_VERSION_MAJOR 2
 #define BRICK_FIRMWARE_VERSION_MINOR 0
-#define BRICK_FIRMWARE_VERSION_REVISION 0
+#define BRICK_FIRMWARE_VERSION_REVISION 1
 
 #define BRICK_HARDWARE_VERSION_MAJOR 1
 #define BRICK_HARDWARE_VERSION_MINOR 0
@@ -60,6 +60,7 @@
 #define BOARD_OSC_EXTERNAL      // Use external oscillator
 #define SPI_FREQ       2000000  // Frequency of SPI communication to TMC2130
 
+#define BRICK_HAS_CO_MCU_SUPPORT
 
 // UART for console output (printf)
 #define PIN_CONSOLE_RXD  {1 << 21, PIOA, ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
