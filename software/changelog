@@ -4,5 +4,5 @@
 2017-05-11: 2.0.1 (1fa2aa8)
 - Add support for co-mcu Bricklets
 
-2017-05-16: 2.0.2 (TBD)
+2017-05-16: 2.0.2 (24985bf)
 - Fix bug in calculation of current consumption
