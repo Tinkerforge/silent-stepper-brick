@@ -605,7 +605,7 @@ void get_all_data(const ComType com, const GetAllData *data) {
 	gadr.remaining_steps     = stepper_get_remaining_steps();
 	gadr.stack_voltage       = stepper_get_stack_voltage();
 	gadr.external_voltage    = stepper_get_external_voltage();
-	gadr.current_consumption = stepper_get_current();
+	gadr.current_consumption = (tmc2130_high_level.motor_run_current * 32) / tmc2130_reg_drv_status.bit.cs_actual;
 
 	send_blocking_with_timeout(&gadr, sizeof(GetAllDataReturn), com);
 }
