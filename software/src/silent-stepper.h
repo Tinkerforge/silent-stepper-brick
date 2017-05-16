@@ -108,7 +108,6 @@ void stepper_make_drive_speedramp(const uint8_t state);
 void stepper_drive_speedramp(void);
 void stepper_full_brake(void);
 void stepper_check_error_signals(void);
-uint16_t stepper_get_current(void);
 void stepper_set_sync_rect(bool sr);
 int32_t stepper_get_remaining_steps(void);
 void stepper_all_data_signal(void);

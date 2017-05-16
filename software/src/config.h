@@ -259,11 +259,6 @@
                           (VOLTAGE_EXTERN_MULTIPLIER* \
                            VOLTAGE_EXTERN_REFERENCE))
 
-#define STEPPER_CURRENT_CHANNEL 1
-#define STEPPER_CURRENT_MULTIPLIER 2
-#define STEPPER_CURRENT_REFERENCE 3300
-#define STEPPER_CURRENT_PIN {1 << 18, PIOA, ID_PIOA, PIO_INPUT, PIO_PULLDOWN}
-
 // 15: 0.012 Ohm Resistor
 // 1/6: Minimum value for DAC
 // 5/6: Maximim value for DAC

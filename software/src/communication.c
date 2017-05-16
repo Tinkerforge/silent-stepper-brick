@@ -283,7 +283,11 @@ void get_current_consumption(const ComType com, const GetCurrentConsumption *dat
 
 	gccr.header        = data->header;
 	gccr.header.length = sizeof(GetCurrentConsumptionReturn);
-	gccr.current       = stepper_get_current();
+
+	// This function is here because of a copy and paste error from the old Stepper Brick,
+	// the TMC2130 does not actually have an external current measurement mechanism.
+	// See get_driver_status for an alternative.
+	gccr.current       = 0;
 
 	send_blocking_with_timeout(&gccr, sizeof(GetCurrentConsumptionReturn), com);
 }

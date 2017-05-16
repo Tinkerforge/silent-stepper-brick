@@ -74,7 +74,6 @@ int32_t stepper_last_delay = 0;
 int32_t stepper_delay_rest = 0;
 int32_t stepper_deceleration_start = 0;
 uint32_t stepper_tick_counter = 0;
-uint32_t stepper_tick_calc_counter = 0;
 uint8_t stepper_tick_read_counter = 0;
 
 uint32_t stepper_time_base = 1;
@@ -84,9 +83,6 @@ uint32_t stepper_all_data_period_counter = 0;
 
 bool stepper_running = false;
 bool stepper_position_reached = false;
-
-uint32_t stepper_current_sum = 0;
-uint32_t stepper_current = 0;
 
 uint8_t stepper_api_state = STEPPER_API_STATE_STOP;
 uint8_t stepper_api_prev_state = STEPPER_API_STATE_STOP;
@@ -260,14 +256,6 @@ void tick_task(const uint8_t tick_type) {
 			stepper_tick_read_counter = 0;
 		}
 
-		stepper_tick_calc_counter++;
-		stepper_current_sum += adc_channel_get_data(STEPPER_CURRENT_CHANNEL);
-		if(stepper_tick_calc_counter % 100 == 0) {
-
-			stepper_current = stepper_current_sum/100;
-			stepper_current_sum = 0;
-		}
-
 		// Switch Output Voltage between extern and stack
 		if(stepper_get_external_voltage() < STEPPER_VOLTAGE_EPSILON) {
 			PIO_Set(&pin_voltage_switch);
@@ -351,13 +339,11 @@ void stepper_all_data_signal(void) {
 void stepper_init(void) {
 	Pin stepper_power_management_pins[] = {VOLTAGE_STACK_PIN,
 	                                       VOLTAGE_EXTERN_PIN,
-	                                       VOLTAGE_STACK_SWITCH_PIN,
-	                                       STEPPER_CURRENT_PIN};
+	                                       VOLTAGE_STACK_SWITCH_PIN};
 	PIO_Configure(stepper_power_management_pins, PIO_LISTSIZE(stepper_power_management_pins));
 
 	adc_channel_enable(VOLTAGE_EXTERN_CHANNEL);
 	adc_channel_enable(VOLTAGE_STACK_CHANNEL);
-	adc_channel_enable(STEPPER_CURRENT_CHANNEL);
 
 	tmc2130_set_active(false);
 	SLEEP_MS(40);
@@ -672,13 +658,6 @@ uint16_t stepper_get_stack_voltage(void) {
            VOLTAGE_STACK_REFERENCE *
            VOLTAGE_STACK_MULTIPLIER /
            VOLTAGE_MAX_VALUE;
-}
-
-uint16_t stepper_get_current(void) {
-	return stepper_current *
-	       STEPPER_CURRENT_REFERENCE *
-	       STEPPER_CURRENT_MULTIPLIER /
-	       VOLTAGE_MAX_VALUE;
 }
 
 int32_t stepper_get_remaining_steps(void) {
