@@ -333,7 +333,11 @@ void stepper_all_data_signal(void) {
 	ads.remaining_steps = stepper_get_remaining_steps();
 	ads.stack_voltage = stepper_get_stack_voltage();
 	ads.external_voltage = stepper_get_external_voltage();
-	ads.current_consumption =  (tmc2130_high_level.motor_run_current * 32) / tmc2130_reg_drv_status.bit.cs_actual;
+	if(stepper_state == STEPPER_STATE_OFF) {
+		ads.current_consumption = 0;
+	} else {
+		ads.current_consumption = (tmc2130_high_level.motor_run_current * (tmc2130_reg_drv_status.bit.cs_actual + 1)) / 32;
+	}
 
 	send_blocking_with_timeout(&ads, sizeof(AllDataSignal), com_info.current);
 }
