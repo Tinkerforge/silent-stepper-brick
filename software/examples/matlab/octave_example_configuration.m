@@ -5,8 +5,8 @@ function octave_example_configuration()
     PORT = 4223;
     UID = "XXYYZZ"; % Change XXYYZZ to the UID of your Silent Stepper Brick
 
-    ipcon = java_new("com.tinkerforge.IPConnection"); % Create IP connection
-    ss = java_new("com.tinkerforge.BrickSilentStepper", UID, ipcon); % Create device object
+    ipcon = javaObject("com.tinkerforge.IPConnection"); % Create IP connection
+    ss = javaObject("com.tinkerforge.BrickSilentStepper", UID, ipcon); % Create device object
 
     ipcon.connect(HOST, PORT); % Connect to brickd
     % Don't use device before ipcon is connected
