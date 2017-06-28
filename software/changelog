@@ -7,5 +7,5 @@
 2017-05-16: 2.0.2 (24985bf)
 - Fix bug in calculation of current consumption
 
-2017-06-28: 2.0.3 (TBD)
+2017-06-28: 2.0.3 (3b4a00b)
 - Fix incompatibility between co-mcu support and LED Strip Bricklet (through bricklib)
