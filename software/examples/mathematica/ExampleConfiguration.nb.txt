@@ -11,7 +11,8 @@ ss=NETNew["Tinkerforge.BrickSilentStepper",uid,ipcon]
 ipcon@Connect[host,port]
 
 ss@SetMotorCurrent[800](*800mA*)
-ss@SetStepConfiguration[BrickSilentStepper`STEPURESOLUTIONU8,True](*1/8 steps (interpolated)*)
+ss@SetStepConfiguration[BrickSilentStepper`STEPURESOLUTIONU8,
+                        True](*1/8 steps (interpolated)*)
 ss@SetMaxVelocity[2000](*Velocity 2000 steps/s*)
 
 (*Slow acceleration (500 steps/s^2),*)
