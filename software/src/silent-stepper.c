@@ -247,8 +247,6 @@ void stepper_make_step_speedramp(const int32_t steps) {
 }
 
 void tick_task(const uint8_t tick_type) {
-	static int8_t message_counter = 0;
-
 	if(tick_type == TICK_TASK_TYPE_CALCULATION) {
 		tmc2130_handle_register_read_and_write();
 
