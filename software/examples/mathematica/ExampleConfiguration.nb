@@ -19,7 +19,7 @@ Notebook[{
    RowBox[{"
 "}],
    RowBox[{"ss", "@", RowBox[{"SetMotorCurrent", "[", "800", "]"}], RowBox[{"(*", "800mA", "*)"}]}],
-   RowBox[{"ss", "@", RowBox[{"SetStepConfiguration", "[", RowBox[{"BrickSilentStepper`STEPURESOLUTIONU8", ",", RowBox[{"\[IndentingNewLine]", "True"}]}], "]"}], RowBox[{"(*", "1/8 steps (interpolated)", "*)"}]}],
+   RowBox[{"ss", "@", RowBox[{"SetStepConfiguration", "[", RowBox[{"Tinkerforge`BrickSilentStepper`STEPURESOLUTIONU8", ",", RowBox[{"\[IndentingNewLine]", "True"}]}], "]"}], RowBox[{"(*", "1/8 steps (interpolated)", "*)"}]}],
    RowBox[{"ss", "@", RowBox[{"SetMaxVelocity", "[", "2000", "]"}], RowBox[{"(*", "Velocity 2000 steps/s", "*)"}]}],
    RowBox[{"
 "}],
