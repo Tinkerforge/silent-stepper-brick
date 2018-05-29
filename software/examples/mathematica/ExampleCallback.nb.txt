@@ -34,7 +34,7 @@ PositionReachedCB[sender_,position_]:=
 
 AddEventHandler[ss@PositionReachedCallback,PositionReachedCB]
 
-ss@SetStepConfiguration[BrickSilentStepper`STEPURESOLUTIONU8,
+ss@SetStepConfiguration[Tinkerforge`BrickSilentStepper`STEPURESOLUTIONU8,
                         True](*1/8 steps (interpolated)*)
 ss@Enable[](*Enable motor power*)
 ss@SetSteps[1](*Drive one step forward to get things going*)

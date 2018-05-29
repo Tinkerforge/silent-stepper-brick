@@ -25,7 +25,7 @@ Notebook[{
    RowBox[{"AddEventHandler", "[", RowBox[{RowBox[{"ss", "@", "PositionReachedCallback"}], ",", "PositionReachedCB"}], "]"}],
    RowBox[{"
 "}],
-   RowBox[{"ss", "@", RowBox[{"SetStepConfiguration", "[", RowBox[{"BrickSilentStepper`STEPURESOLUTIONU8", ",", RowBox[{"\[IndentingNewLine]", "True"}]}], "]"}], RowBox[{"(*", "1/8 steps (interpolated)", "*)"}]}],
+   RowBox[{"ss", "@", RowBox[{"SetStepConfiguration", "[", RowBox[{"Tinkerforge`BrickSilentStepper`STEPURESOLUTIONU8", ",", RowBox[{"\[IndentingNewLine]", "True"}]}], "]"}], RowBox[{"(*", "1/8 steps (interpolated)", "*)"}]}],
    RowBox[{"ss", "@", RowBox[{"Enable", "[", "]"}], RowBox[{"(*", "Enable motor power", "*)"}]}],
    RowBox[{"ss", "@", RowBox[{"SetSteps", "[", "1", "]"}], RowBox[{"(*", "Drive one step forward to get things going", "*)"}]}],
    RowBox[{"
