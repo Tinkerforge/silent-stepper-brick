@@ -2,13 +2,13 @@
 - Initial version
 
 2017-05-11: 2.0.1 (1fa2aa8)
-- Add support for co-mcu Bricklets
+- Add support for Co-MCU Bricklets
 
 2017-05-16: 2.0.2 (24985bf)
 - Fix bug in calculation of current consumption
 
 2017-06-28: 2.0.3 (3b4a00b)
-- Fix incompatibility between co-mcu support and LED Strip Bricklet (through bricklib)
+- Fix incompatibility between Co-MCU support and LED Strip Bricklet (through bricklib)
 
 2017-12-13: 2.0.4 (1d0c5d4)
 - Make sure Brick does not restart on suspend/resume (through bricklib)
@@ -18,7 +18,7 @@
 - Fix message duplication bug (through bricklib)
 
 2018-04-27: 2.0.6 (b450dc3)
-- Fix potential deadlock between usb stack and comcu enumeration (through bricklib)
+- Fix potential deadlock between USB stack and Co-MCU enumeration (through bricklib)
 
 2018-07-31: 2.0.7 (f0d639a)
 - Add support for Isolator Bricklet (through bricklib)
