@@ -1,8 +1,6 @@
 Imports System
 Imports Tinkerforge
 
-' FIXME: This example is incomplete
-
 Module ExampleCallback
     Const HOST As String = "localhost"
     Const PORT As Integer = 4223
