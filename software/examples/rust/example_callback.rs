@@ -13,9 +13,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     ipcon.connect((HOST, PORT)).recv()??; // Connect to brickd
                                           // Don't use device before ipcon is connected
 
-    //Create receiver for position reached events.
-    let position_reached_receiver = ss.get_position_reached_receiver();
-    // Spawn thread to handle received events. This thread ends when the ss
+    
+    let position_reached_receiver = ss.get_position_reached_callback_receiver();
+    
+    // Spawn thread to handle received callback messages. This thread ends when the ss
     // is dropped, so there is no need for manual cleanup.
     let ss_copy = ss.clone(); //Device objects don't implement Sync, so they can't be shared between threads (by reference). So clone the device and move the copy.
     thread::spawn(move || {
