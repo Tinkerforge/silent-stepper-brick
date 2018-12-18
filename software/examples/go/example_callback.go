@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-	"tinkerforge/ipconnection"
-    "tinkerforge/silent_stepper_brick"
+	"github.com/tinkerforge/go-api-bindings/ipconnection"
+    "github.com/tinkerforge/go-api-bindings/silent_stepper_brick"
 )
 
 const ADDR string = "localhost:4223"
