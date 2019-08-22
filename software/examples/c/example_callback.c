@@ -52,7 +52,7 @@ int main(void) {
 	// Register position reached callback to function cb_position_reached
 	silent_stepper_register_callback(&ss,
 	                                 SILENT_STEPPER_CALLBACK_POSITION_REACHED,
-	                                 (void *)cb_position_reached,
+	                                 (void (*)(void))cb_position_reached,
 	                                 NULL);
 
 	silent_stepper_set_step_configuration(&ss, SILENT_STEPPER_STEP_RESOLUTION_8,
