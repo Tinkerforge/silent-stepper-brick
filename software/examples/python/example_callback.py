@@ -42,6 +42,6 @@ if __name__ == "__main__":
     ss.enable() # Enable motor power
     ss.set_steps(1) # Drive one step forward to get things going
 
-    raw_input("Press key to exit\n") # Use input() in Python 3
+    input("Press key to exit\n") # Use raw_input() in Python 2
     ss.disable()
     ipcon.disconnect()
