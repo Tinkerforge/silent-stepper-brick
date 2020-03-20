@@ -41,7 +41,7 @@
 
                 ipcon.on(Tinkerforge.IPConnection.CALLBACK_CONNECTED,
                     function (connectReason) {
-                        ss.setMotorCurrent(800); // 800mA
+                        ss.setMotorCurrent(800); // 800 mA
                         ss.setStepConfiguration(Tinkerforge.BrickSilentStepper.STEP_RESOLUTION_8,
                                                 true); // 1/8 steps (interpolated)
                         ss.setMaxVelocity(2000); // Velocity 2000 steps/s

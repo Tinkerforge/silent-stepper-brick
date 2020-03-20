@@ -49,7 +49,14 @@ Module ExampleCallback
 
         Console.WriteLine("Press key to exit")
         Console.ReadLine()
-        ss.Disable()
+
+        ' Stop motor before disabling motor power
+        ss.Stop() ' Request motor stop
+        ss.SetSpeedRamping(500, _
+                           5000) ' Fast deacceleration (5000 steps/s^2) for stopping
+        Thread.Sleep(400) ' Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s
+        ss.Disable() ' Disable motor power
+
         ipcon.Disconnect()
     End Sub
 End Module

@@ -5,6 +5,7 @@ HOST = "localhost"
 PORT = 4223
 UID = "XXYYZZ" # Change XXYYZZ to the UID of your Silent Stepper Brick
 
+import time
 import random
 
 from tinkerforge.ip_connection import IPConnection
@@ -43,5 +44,11 @@ if __name__ == "__main__":
     ss.set_steps(1) # Drive one step forward to get things going
 
     input("Press key to exit\n") # Use raw_input() in Python 2
-    ss.disable()
+
+    # Stop motor before disabling motor power
+    ss.stop() # Request motor stop
+    ss.set_speed_ramping(500, 5000) # Fast deacceleration (5000 steps/s^2) for stopping
+    time.sleep(0.4) # Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s
+    ss.disable() # Disable motor power
+
     ipcon.disconnect()

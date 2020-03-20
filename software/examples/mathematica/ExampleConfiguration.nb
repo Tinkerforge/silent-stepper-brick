@@ -18,7 +18,7 @@ Notebook[{
    RowBox[{"ipcon", "@", RowBox[{"Connect", "[", RowBox[{"host", ",", "port"}], "]"}]}],
    RowBox[{"
 "}],
-   RowBox[{"ss", "@", RowBox[{"SetMotorCurrent", "[", "800", "]"}], RowBox[{"(*", "800mA", "*)"}]}],
+   RowBox[{"ss", "@", RowBox[{"SetMotorCurrent", "[", "800", "]"}], RowBox[{"(*", "800 mA", "*)"}]}],
    RowBox[{"ss", "@", RowBox[{"SetStepConfiguration", "[", RowBox[{"Tinkerforge`BrickSilentStepper`STEPURESOLUTIONU8", ",", RowBox[{"\[IndentingNewLine]", "True"}]}], "]"}], RowBox[{"(*", "1/8 steps (interpolated)", "*)"}]}],
    RowBox[{"ss", "@", RowBox[{"SetMaxVelocity", "[", "2000", "]"}], RowBox[{"(*", "Velocity 2000 steps/s", "*)"}]}],
    RowBox[{"
@@ -35,8 +35,13 @@ Notebook[{
    RowBox[{"Input", "[", "\"\<Click OK to exit\>\"", "]"}],
    RowBox[{"
 "}],
-   RowBox[{"(*", "Clean up", "*)"}],
-   RowBox[{"ss", "@", RowBox[{"Disable", "[", "]"}]}],
+   RowBox[{"(*", "Stop motor before disabling motor power", "*)"}],
+   RowBox[{"ss", "@", RowBox[{"Stop", "[", "]"}], RowBox[{"(*", "Request motor stop", "*)"}]}],
+   RowBox[{"ss", "@", RowBox[{"SetSpeedRamping", "[", RowBox[{"500", ",", "5000"}], "]"}], RowBox[{"(*", "Fast deacceleration (5000 steps/s^2) for stopping", "*)"}]}],
+   RowBox[{RowBox[{"Pause", "[", "0.4", "]"}], RowBox[{"(*", "Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s", "*)"}]}],
+   RowBox[{"ss", "@", RowBox[{"Disable", "[", "]"}], RowBox[{"(*", "Disable motor power", "*)"}]}],
+   RowBox[{"
+"}],
    RowBox[{"ipcon", "@", RowBox[{"Disconnect", "[", "]"}]}],
    RowBox[{"ReleaseNETObject", "[", "ss", "]"}],
    RowBox[{"ReleaseNETObject", "[", "ipcon", "]"}]

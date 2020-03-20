@@ -35,7 +35,7 @@ begin
   ipcon.Connect(HOST, PORT);
   { Don't use device before ipcon is connected }
 
-  ss.SetMotorCurrent(800); { 800mA }
+  ss.SetMotorCurrent(800); { 800 mA }
   ss.SetStepConfiguration(BRICK_SILENT_STEPPER_STEP_RESOLUTION_8,
                           true); { 1/8 steps (interpolated) }
   ss.SetMaxVelocity(2000); { Velocity 2000 steps/s }
@@ -49,7 +49,13 @@ begin
 
   WriteLn('Press key to exit');
   ReadLn;
-  ss.Disable;
+
+  { Stop motor before disabling motor power }
+  ss.Stop; { Request motor stop }
+  ss.SetSpeedRamping(500, 5000); { Fast deacceleration (5000 steps/s^2) for stopping }
+  Sleep(400); { Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s }
+  ss.Disable; { Disable motor power }
+
   ipcon.Destroy; { Calls ipcon.Disconnect internally }
 end;
 

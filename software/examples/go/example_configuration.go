@@ -18,7 +18,7 @@ func main() {
 	defer ipcon.Disconnect()
 	// Don't use device before ipcon is connected.
 
-	ss.SetMotorCurrent(800) // 800mA
+	ss.SetMotorCurrent(800) // 800 mA
 	ss.SetStepConfiguration(silent_stepper_brick.StepResolution8,
 		true) // 1/8 steps (interpolated)
 	ss.SetMaxVelocity(2000) // Velocity 2000 steps/s
@@ -32,5 +32,10 @@ func main() {
 
 	fmt.Print("Press enter to exit.")
 	fmt.Scanln()
-	ss.Disable()
+
+	// Stop motor before disabling motor power
+	ss.Stop()                          // Request motor stop
+	ss.SetSpeedRamping(500, 5000)      // Fast deacceleration (5000 steps/s^2) for stopping
+	time.Sleep(400 * time.Millisecond) // Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s
+	ss.Disable()                       // Disable motor power
 }

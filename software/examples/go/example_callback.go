@@ -50,5 +50,9 @@ func main() {
 	fmt.Print("Press enter to exit.")
 	fmt.Scanln()
 
-	ss.Disable()
+	// Stop motor before disabling motor power
+	ss.Stop()                          // Request motor stop
+	ss.SetSpeedRamping(500, 5000)      // Fast deacceleration (5000 steps/s^2) for stopping
+	time.Sleep(400 * time.Millisecond) // Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s
+	ss.Disable()                       // Disable motor power
 }

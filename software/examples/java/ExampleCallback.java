@@ -56,7 +56,13 @@ public class ExampleCallback {
 		ss.setSteps(1); // Drive one step forward to get things going
 
 		System.out.println("Press key to exit"); System.in.read();
-		ss.disable();
+
+		// Stop motor before disabling motor power
+		ss.stop(); // Request motor stop
+		ss.setSpeedRamping(500, 5000); // Fast deacceleration (5000 steps/s^2) for stopping
+		Thread.sleep(400); // Wait for motor to actually stop: max velocity (2000 steps/s) / decceleration (5000 steps/s^2) = 0.4 s
+		ss.disable(); // Disable motor power
+
 		ipcon.disconnect();
 	}
 }
