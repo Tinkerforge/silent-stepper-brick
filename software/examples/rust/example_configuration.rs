@@ -1,5 +1,4 @@
-use std::{error::Error, io};
-
+use std::{error::Error, io, thread, time::Duration};
 use tinkerforge::{ip_connection::IpConnection, silent_stepper_brick::*};
 
 const HOST: &str = "localhost";
