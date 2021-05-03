@@ -11,7 +11,7 @@ const PORT = 4223;
 const UID = 'XXYYZZ'; // Change XXYYZZ to the UID of your Silent Stepper Brick
 
 // Use position reached callback to program random movement
-function cb_positionReached($position)
+function cb_positionReached($position, $user_data)
 {
     $ss = $user_data;
 

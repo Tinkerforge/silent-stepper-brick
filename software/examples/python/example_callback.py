@@ -12,7 +12,7 @@ from tinkerforge.ip_connection import IPConnection
 from tinkerforge.brick_silent_stepper import BrickSilentStepper
 
 # Use position reached callback to program random movement
-def cb_position_reached(position):
+def cb_position_reached(position, ss):
     if random.randint(0, 1):
         steps = random.randint(1000, 5000) # steps (forward)
         print("Driving forward: " + str(steps) + " steps")
@@ -37,7 +37,8 @@ if __name__ == "__main__":
     # Don't use device before ipcon is connected
 
     # Register position reached callback to function cb_position_reached
-    ss.register_callback(ss.CALLBACK_POSITION_REACHED, cb_position_reached)
+    ss.register_callback(ss.CALLBACK_POSITION_REACHED,
+                         lambda x: cb_position_reached(x, ss))
 
     ss.set_step_configuration(ss.STEP_RESOLUTION_8, True) # 1/8 steps (interpolated)
     ss.enable() # Enable motor power
